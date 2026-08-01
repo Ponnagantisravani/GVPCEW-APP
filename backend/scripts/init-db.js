@@ -81,7 +81,10 @@ export async function bootstrapDatabase() {
     port: target.port,
     user: target.user,
     password: target.password,
-    database: target.database
+    database: target.database,
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
 
   await appClient.connect();

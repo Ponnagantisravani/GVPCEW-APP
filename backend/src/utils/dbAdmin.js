@@ -20,6 +20,9 @@ export async function createAdminClient(databaseUrl, databaseName = "postgres") 
     port: config.port,
     user: config.user,
     password: config.password,
-    database: databaseName
+    database: databaseName,
+    ssl: {
+      rejectUnauthorized: false
+    }
   });
 }
