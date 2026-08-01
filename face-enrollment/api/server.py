@@ -1,9 +1,16 @@
+import os
 import base64
 import json
+import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import cv2
 import numpy as np
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from recognition.engine import FaceRecognitionEngine
 
@@ -88,4 +95,5 @@ def run(host="127.0.0.1", port=5001):
 
 
 if __name__ == "__main__":
-    run()
+    port = int(os.environ.get("PORT", 5001))
+    run(host="0.0.0.0", port=port)
