@@ -5,7 +5,7 @@ import requests
 
 class BackendClient:
     def __init__(self, base_url=None, timeout=20):
-        self.base_url = (base_url or os.getenv("BACKEND_URL", "http://localhost:4000/api")).rstrip("/")
+        self.base_url = (base_url or os.getenv("BACKEND_URL", "https://gvpcew-app.onrender.com")).rstrip("/")
         self.timeout = timeout
 
     def lookup_student(self, roll_number):
