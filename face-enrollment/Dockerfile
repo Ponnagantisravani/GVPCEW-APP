@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Install system dependencies dlib needs to compile
+# Install system dependencies used by OpenCV and face-recognition
 RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     build-essential \
@@ -20,6 +20,5 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy the rest of the app
 COPY . .
 
-# Render sets $PORT at runtime — replace app.py / app object below
-# with your actual entrypoint file and Flask/FastAPI app variable name
+# Render sets $PORT at runtime; api/server.py binds to 0.0.0.0
 CMD ["python", "api/server.py"]
