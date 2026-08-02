@@ -1,0 +1,13 @@
+venv/
+**pycache**/
+.git/
+.vscode/
+*.pyc
+*.pyo
+*.pyd
+*.jpg
+*.jpeg
+*.png
+*.mp4
+*.avi
+*.mov
