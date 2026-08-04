@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from pathlib import Path
+import sys
 
 from api.client import BackendClient
 from camera.capture import CameraCapture
@@ -15,7 +16,8 @@ class EnrollmentApp(MainWindow):
         self.backend = BackendClient()
         self.camera = CameraCapture()
         self.recognition = FaceRecognitionEngine()
-        dataset_root = Path(__file__).resolve().parent / "datasets"
+        app_root = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
+        dataset_root = app_root / "datasets"
         self.capture_session = DatasetCaptureSession(
             detector=self.recognition,
             dataset_root=dataset_root,
