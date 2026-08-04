@@ -1,5 +1,6 @@
 import pg from "pg";
 import { env } from "./env.js";
+import { getSslConfig } from "../utils/dbAdmin.js";
 
 const { Pool } = pg;
 
@@ -9,7 +10,7 @@ if (!env.databaseUrl) {
 
 export const pool = new Pool({
   connectionString: env.databaseUrl,
-  ssl: { rejectUnauthorized: false }
+  ssl: getSslConfig(env.databaseUrl, env.databaseSslMode)
 });
 
 export async function verifyDatabaseConnection() {

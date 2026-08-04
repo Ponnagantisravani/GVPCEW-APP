@@ -3,7 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 import pg from "pg";
-import { createAdminClient, parseDatabaseUrl } from "../src/utils/dbAdmin.js";
+import { createAdminClient, getSslConfig, parseDatabaseUrl } from "../src/utils/dbAdmin.js";
 
 dotenv.config({ path: new URL("../.env", import.meta.url) });
 
@@ -82,9 +82,7 @@ export async function bootstrapDatabase() {
     user: target.user,
     password: target.password,
     database: target.database,
-    ssl: {
-      rejectUnauthorized: false
-    }
+    ssl: getSslConfig(databaseUrl)
   });
 
   await appClient.connect();

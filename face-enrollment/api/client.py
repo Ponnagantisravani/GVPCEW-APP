@@ -7,10 +7,11 @@ class BackendClient:
     def __init__(self, base_url=None, timeout=20):
         self.base_url = (base_url or os.getenv("BACKEND_URL", "https://gvpcew-app.onrender.com")).rstrip("/")
         self.timeout = timeout
+        self.api_base_url = self._normalize_api_base_url(self.base_url)
 
     def lookup_student(self, roll_number):
         response = requests.post(
-            f"{self.base_url}/enrollment/lookup",
+            self._url("/enrollment/lookup"),
             json={"rollNumber": roll_number},
             timeout=10
         )
@@ -18,11 +19,17 @@ class BackendClient:
 
     def upload_embedding(self, payload):
         response = requests.post(
-            f"{self.base_url}/enrollment/upload",
+            self._url("/enrollment/upload"),
             json=payload,
             timeout=self.timeout
         )
         return self._parse_response(response)
+
+    def _url(self, path):
+        return f"{self.api_base_url}{path}"
+
+    def _normalize_api_base_url(self, base_url):
+        return base_url if base_url.endswith("/api") else f"{base_url}/api"
 
     def _parse_response(self, response):
         try:
