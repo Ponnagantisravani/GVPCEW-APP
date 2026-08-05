@@ -8,6 +8,17 @@ from recognition.engine import DatasetCaptureSession, FaceRecognitionEngine
 from ui.main_window import MainWindow
 
 
+def get_project_dataset_root() -> Path:
+    if getattr(sys, "frozen", False):
+        project_root = Path(sys.executable).resolve().parent.parent
+    else:
+        project_root = Path(__file__).resolve().parent
+
+    dataset_root = project_root / "datasets"
+    dataset_root.mkdir(parents=True, exist_ok=True)
+    return dataset_root
+
+
 class EnrollmentApp(MainWindow):
     def __init__(self):
         ctk.set_appearance_mode("dark")
@@ -16,8 +27,7 @@ class EnrollmentApp(MainWindow):
         self.backend = BackendClient()
         self.camera = CameraCapture()
         self.recognition = FaceRecognitionEngine()
-        app_root = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
-        dataset_root = app_root / "datasets"
+        dataset_root = get_project_dataset_root()
         self.capture_session = DatasetCaptureSession(
             detector=self.recognition,
             dataset_root=dataset_root,
