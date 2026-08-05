@@ -1,8 +1,9 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import base64
 from datetime import datetime, timezone
 from pathlib import Path
+import random
 import threading
 import time
 
@@ -22,6 +23,67 @@ def image_to_data_url(image_path: Path) -> str | None:
     return f"data:image/jpeg;base64,{encoded}"
 
 
+THANK_YOU_MESSAGES = [
+    {
+        "headline": "💖 Thank You, {USER_NAME}!",
+        "body": (
+            "Your time means a lot to us. Thank you for helping us create a safer and smarter experience for you. 🌸✨\n"
+            "Every moment you spent here is truly appreciated. 🤍😊"
+        ),
+    },
+    {
+        "headline": "🌷 You're Awesome, {USER_NAME}!",
+        "body": (
+            "Thank you for your patience, your smile, and the few moments you shared with us today. 💕📸\n"
+            "We're grateful for your time and trust. Wishing you a wonderful day! 🌈✨"
+        ),
+    },
+    {
+        "headline": "💙 From the bottom of our hearts, thank you!",
+        "body": (
+            "Every great experience begins with a simple step, and you just completed yours. 🌟\n"
+            "We truly appreciate your time and cooperation. 😊🌼"
+        ),
+    },
+    {
+        "headline": "🌸 A Little Note of Thanks",
+        "body": (
+            "Thank you for choosing to spend a few moments with us today. 💖\n"
+            "Your participation helps us serve you better, and we're genuinely grateful. 🤗✨"
+        ),
+    },
+    {
+        "headline": "🦋 Mission Accomplished!",
+        "body": (
+            "Thank you for your patience and for taking the time to complete your enrollment. 💙📸\n"
+            "We hope your day is filled with happiness, success, and lots of smiles! 😊🌷"
+        ),
+    },
+    {
+        "headline": "🌟 Thank You for Being Here!",
+        "body": (
+            "Your time is valuable, and we're truly grateful you chose to spend a little of it with us. 💖\n"
+            "Wishing you endless success and happiness. Stay amazing! 🌸✨"
+        ),
+    },
+    {
+        "headline": "🥹💕 A Big Hug of Thanks!",
+        "body": (
+            "Thank you for your time, your patience, and your lovely smile. 📸😊\n"
+            "We couldn't have done this without you.\n"
+            "Have a beautiful day ahead! 🌈🌼"
+        ),
+    },
+    {
+        "headline": "💚 Enrollment Successfully Completed!",
+        "body": (
+            "Thank you for your cooperation and the time you've invested today. 🌟\n"
+            "Your trust means everything to us, and we're committed to providing you with a secure and seamless experience. 🤝✨"
+        ),
+    },
+]
+
+
 class MainWindow(ctk.CTk):
     def __init__(self, backend, camera, recognition, capture_session):
         super().__init__()
@@ -39,8 +101,11 @@ class MainWindow(ctk.CTk):
         self.last_preview_frame = None
         self.capture_complete = False
         self.processing_dataset = False
+        self.processing_started_at = 0.0
+        self.last_thank_you_index = None
         self.success_banner_var = ctk.StringVar(value="")
         self.success_details_var = ctk.StringVar(value="")
+        self.model_status_var = ctk.StringVar(value="Building your face model...")
 
         self.title("GVPCEW Face Dataset Collector")
         self.geometry("1280x780")
@@ -92,6 +157,65 @@ class MainWindow(ctk.CTk):
             font=("Segoe UI", 26, "bold")
         )
         self.processing_label.pack(expand=True, padx=24, pady=24)
+
+        self.enrollment_modal = ctk.CTkFrame(self, fg_color="#e0f2fe")
+        self.enrollment_card = ctk.CTkFrame(
+            self.enrollment_modal,
+            fg_color="#ffffff",
+            corner_radius=28,
+            border_width=1,
+            border_color="#dbeafe",
+        )
+        self.success_icon = ctk.CTkLabel(
+            self.enrollment_card,
+            text="âœ“",
+            font=("Segoe UI", 64, "bold"),
+            text_color="#dbe5ef",
+        )
+        self.success_icon.pack(pady=(8, 2))
+        self.enrollment_title = ctk.CTkLabel(
+            self.enrollment_card,
+            text="🎉 Enrollment Complete!",
+            font=("Segoe UI", 34, "bold"),
+            text_color="#0f766e",
+        )
+        self.enrollment_title.pack(pady=(0, 18))
+        self.enrollment_subtitle = ctk.CTkLabel(
+            self.enrollment_card,
+            text="",
+            font=("Segoe UI", 24, "bold"),
+            text_color="#0f172a",
+            justify="center",
+            wraplength=820,
+        )
+        self.enrollment_subtitle.pack(padx=42, pady=(0, 16))
+        self.enrollment_message = ctk.CTkLabel(
+            self.enrollment_card,
+            text="",
+            font=("Segoe UI", 16),
+            text_color="#64748b",
+            justify="center",
+            wraplength=820,
+        )
+        self.enrollment_message.pack(padx=42, pady=(0, 28))
+        self.model_progress = ctk.CTkProgressBar(self.enrollment_card, mode="indeterminate")
+        self.model_progress.pack(fill="x", padx=120, pady=(0, 10))
+        self.model_status = ctk.CTkLabel(
+            self.enrollment_card,
+            textvariable=self.model_status_var,
+            font=("Segoe UI", 16, "bold"),
+            text_color="#2563eb",
+            justify="center",
+            wraplength=820,
+        )
+        self.model_status.pack(pady=(0, 14))
+        self.retry_button = ctk.CTkButton(
+            self.enrollment_card,
+            text="Retry model build",
+            command=self.retry_dataset_processing,
+            fg_color="#2563eb",
+            hover_color="#1d4ed8",
+        )
 
         self.metrics = ctk.CTkLabel(
             right,
@@ -170,8 +294,10 @@ class MainWindow(ctk.CTk):
 
         self.capture_complete = False
         self.processing_dataset = False
+        self.processing_started_at = 0.0
         self.capture_session.start(roll_number)
         self.hide_processing_overlay()
+        self.hide_enrollment_modal()
         self.hide_success_indicator()
         self.progress.set(0)
         self.set_status("Dataset capture started. Hold one clear, front-facing face in frame.")
@@ -209,9 +335,10 @@ class MainWindow(ctk.CTk):
                 self.capture_session.stop()
                 self.camera.stop()
                 self.progress.set(1.0)
-                self.set_status("Processing Dataset...")
+                self.set_status("All 25 photos captured. Building your face model...", write_log=False)
                 self.processing_dataset = True
-                self.show_processing_overlay()
+                self.processing_started_at = time.time()
+                self.show_enrollment_modal()
                 threading.Thread(target=self.process_dataset_and_upload, daemon=True).start()
 
         self.after(120, self.process_capture)
@@ -252,16 +379,12 @@ class MainWindow(ctk.CTk):
                 processed_image_count += 1
 
         if not embeddings:
-            self.processing_dataset = False
-            self.after(0, self.hide_processing_overlay)
-            self.after(0, lambda: self.set_status("No valid face embeddings could be generated from the saved images."))
+            self.after(0, lambda: self.show_processing_error("No valid face embeddings could be generated from the saved images."))
             return
 
         averaged_embedding = self.recognition.average_embedding(embeddings)
         if averaged_embedding is None:
-            self.processing_dataset = False
-            self.after(0, self.hide_processing_overlay)
-            self.after(0, lambda: self.set_status("Failed to average the generated embeddings."))
+            self.after(0, lambda: self.show_processing_error("Failed to average the generated embeddings."))
             return
 
         payload = {
@@ -299,21 +422,23 @@ class MainWindow(ctk.CTk):
             self.log_line("Uploading embeddings and student details to PostgreSQL through the backend API.")
             response = self.backend.upload_embedding(payload)
         except RuntimeError as exc:
-            self.processing_dataset = False
-            self.after(0, self.hide_processing_overlay)
-            self.after(0, lambda: self.set_status(str(exc)))
+            self.after(0, lambda: self.show_processing_error(str(exc)))
             return
         except Exception as exc:
-            self.processing_dataset = False
-            self.after(0, self.hide_processing_overlay)
-            self.after(0, lambda: self.set_status(f"Upload failed: {exc}"))
+            self.after(0, lambda: self.show_processing_error(f"Upload failed: {exc}"))
             return
 
-        self.processing_dataset = False
-        self.after(0, self.hide_processing_overlay)
-        self.after(0, lambda: self._mark_enrollment_successful(response, processed_image_count))
+        self.after(0, lambda: self.finish_processing_after_minimum_delay(response, processed_image_count))
+
+    def finish_processing_after_minimum_delay(self, response, processed_image_count: int):
+        elapsed_ms = int((time.time() - self.processing_started_at) * 1000)
+        remaining_ms = max(0, 3500 - elapsed_ms)
+        self.model_status_var.set("Face model ready! Finalizing enrollment... ✅")
+        self.after(remaining_ms, lambda: self._mark_enrollment_successful(response, processed_image_count))
 
     def _mark_enrollment_successful(self, response, processed_image_count: int):
+        self.processing_dataset = False
+        self.hide_enrollment_modal()
         self.set_status("Enrollment Successful")
         self.log_line("Embeddings stored successfully in PostgreSQL.")
         student = response.get("student", {})
@@ -341,6 +466,67 @@ class MainWindow(ctk.CTk):
 
     def hide_processing_overlay(self):
         self.processing_overlay.place_forget()
+
+    def choose_thank_you_message(self):
+        available_indexes = list(range(len(THANK_YOU_MESSAGES)))
+        if self.last_thank_you_index in available_indexes and len(available_indexes) > 1:
+            available_indexes.remove(self.last_thank_you_index)
+
+        selected_index = random.choice(available_indexes)
+        self.last_thank_you_index = selected_index
+        return THANK_YOU_MESSAGES[selected_index]
+
+    def show_enrollment_modal(self):
+        user_name = self.profile.full_name or "friend"
+        selected_message = self.choose_thank_you_message()
+        self.retry_button.pack_forget()
+        self.model_status.configure(text_color="#2563eb")
+        self.model_status_var.set("Building your face model...")
+        self.enrollment_title.configure(text="🎉 Enrollment Complete!")
+        self.enrollment_subtitle.configure(
+            text=selected_message["headline"].replace("{USER_NAME}", user_name)
+        )
+        self.enrollment_message.configure(
+            text=selected_message["body"].replace("{USER_NAME}", user_name),
+            text_color="#dbeafe",
+        )
+        self.model_status_var.set(
+            f"Your {self.capture_session.capture_limit} photos were captured successfully.\n"
+            "Building your face model in the background..."
+        )
+        self.enrollment_modal.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.enrollment_card.place(relx=0.5, rely=0.5, relwidth=0.82, relheight=0.9, anchor="center")
+        self.enrollment_card.configure(fg_color="#eef7ff")
+        self.after(80, lambda: self.enrollment_card.configure(fg_color="#f8fbff"))
+        self.after(140, lambda: self.enrollment_message.configure(text_color="#64748b"))
+        self.after(220, lambda: self.enrollment_card.configure(fg_color="#ffffff"))
+        self.after(260, lambda: self.enrollment_message.configure(text_color="#0f172a"))
+        self.model_progress.start()
+
+    def hide_enrollment_modal(self):
+        self.model_progress.stop()
+        self.retry_button.pack_forget()
+        self.enrollment_modal.place_forget()
+
+    def show_processing_error(self, message: str):
+        self.processing_dataset = False
+        self.model_progress.stop()
+        self.model_status.configure(text_color="#dc2626")
+        self.model_status_var.set(f"{message}\nPlease retry once, or reset and capture again.")
+        self.retry_button.pack(pady=(0, 22))
+        self.set_status(message)
+
+    def retry_dataset_processing(self):
+        if self.processing_dataset:
+            return
+        self.processing_dataset = True
+        self.processing_started_at = time.time()
+        self.retry_button.pack_forget()
+        self.model_status.configure(text_color="#2563eb")
+        self.model_status_var.set("Building your face model...")
+        self.model_progress.start()
+        self.set_status("Retrying face model build...")
+        threading.Thread(target=self.process_dataset_and_upload, daemon=True).start()
 
     def show_success_indicator(self, title: str, details: str):
         self.success_banner_var.set(title)
@@ -372,6 +558,7 @@ class MainWindow(ctk.CTk):
         self.student_card.delete("1.0", "end")
         self.student_card.insert("end", "Dataset folder details will appear here.\n")
         self.hide_processing_overlay()
+        self.hide_enrollment_modal()
         self.hide_success_indicator()
         self.set_status("Session reset. Ready for the next person.")
 
@@ -379,3 +566,4 @@ class MainWindow(ctk.CTk):
         self.capture_session.stop()
         self.camera.stop()
         self.destroy()
+
