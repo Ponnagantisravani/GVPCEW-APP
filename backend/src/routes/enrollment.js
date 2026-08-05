@@ -1,9 +1,21 @@
 import { Router } from "express";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
 import { pool } from "../config/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const enrollmentRouter = Router();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsRoot = path.resolve(__dirname, "../uploads/datasets");
+
+const capturedImageSchema = z.object({
+  fileName: z.string().min(1),
+  dataUrl: z.string().min(1)
+});
 
 const lookupSchema = z.object({
   rollNumber: z.string().min(1)
@@ -21,8 +33,56 @@ const uploadSchema = z.object({
   datasetDirectory: z.string().min(1).optional(),
   enrolledAt: z.string().datetime().optional(),
   referenceImages: z.array(z.string()).optional(),
+  capturedImages: z.array(capturedImageSchema).optional(),
   metadata: z.record(z.any()).optional()
 });
+
+function sanitizePathPart(value) {
+  return String(value).replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 80) || "unknown";
+}
+
+function decodeDataUrl(dataUrl) {
+  const match = dataUrl.match(/^data:image\/(png|jpe?g);base64,(.+)$/i);
+  if (!match) {
+    return null;
+  }
+
+  const extension = match[1].toLowerCase() === "png" ? "png" : "jpg";
+  return {
+    extension,
+    buffer: Buffer.from(match[2], "base64")
+  };
+}
+
+async function saveCapturedImages(rollNumber, capturedImages = []) {
+  if (capturedImages.length === 0) {
+    return [];
+  }
+
+  const safeRollNumber = sanitizePathPart(rollNumber);
+  const studentUploadDir = path.join(uploadsRoot, safeRollNumber);
+  await fs.mkdir(studentUploadDir, { recursive: true });
+
+  const savedImages = [];
+  for (const [index, image] of capturedImages.entries()) {
+    const decoded = decodeDataUrl(image.dataUrl);
+    if (!decoded) {
+      continue;
+    }
+
+    const sourceName = path.parse(sanitizePathPart(image.fileName)).name || `${safeRollNumber}_${index + 1}`;
+    const fileName = `${sourceName}.${decoded.extension}`;
+    const filePath = path.join(studentUploadDir, fileName);
+    await fs.writeFile(filePath, decoded.buffer);
+    savedImages.push({
+      fileName,
+      path: filePath,
+      url: `/uploads/datasets/${safeRollNumber}/${fileName}`
+    });
+  }
+
+  return savedImages;
+}
 
 enrollmentRouter.post("/lookup", asyncHandler(async (req, res) => {
   const parsed = lookupSchema.safeParse(req.body);
@@ -75,6 +135,7 @@ enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
     processedImageCount,
     datasetDirectory,
     enrolledAt,
+    capturedImages = [],
     metadata = {}
   } = parsed.data;
   const client = await pool.connect();
@@ -145,6 +206,8 @@ enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
       return res.status(409).json({ message: "Student is already enrolled" });
     }
 
+    const savedImages = await saveCapturedImages(rollNumber, capturedImages);
+
     const enrollmentMetadata = {
       ...metadata,
       roll_number: rollNumber,
@@ -155,7 +218,8 @@ enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
       captured_image_count: sampleCount,
       processed_image_count: processedImageCount ?? sampleCount,
       enrollment_timestamp: enrolledAt || new Date().toISOString(),
-      reference_images: parsed.data.referenceImages || []
+      reference_images: parsed.data.referenceImages || savedImages.map((image) => image.fileName),
+      uploaded_images: savedImages
     };
 
     await client.query(
@@ -182,7 +246,8 @@ enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
         fullName: fullName || null,
         departmentName: departmentName || null,
         section: section || null,
-        datasetDirectory: datasetDirectory || null
+        datasetDirectory: datasetDirectory || null,
+        uploadedImages: savedImages
       }
     });
   } catch (error) {

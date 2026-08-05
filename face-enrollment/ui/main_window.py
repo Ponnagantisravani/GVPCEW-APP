@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from datetime import datetime, timezone
 from pathlib import Path
 import threading
@@ -10,6 +11,15 @@ import cv2
 from PIL import Image, ImageTk
 
 from utils.profile import StudentProfile
+
+
+def image_to_data_url(image_path: Path) -> str | None:
+    try:
+        encoded = base64.b64encode(image_path.read_bytes()).decode("ascii")
+    except OSError:
+        return None
+
+    return f"data:image/jpeg;base64,{encoded}"
 
 
 class MainWindow(ctk.CTk):
@@ -265,6 +275,11 @@ class MainWindow(ctk.CTk):
             "datasetDirectory": str(saved_dir),
             "enrolledAt": datetime.now(timezone.utc).isoformat(),
             "referenceImages": [path.name for path in image_paths],
+            "capturedImages": [
+                {"fileName": path.name, "dataUrl": data_url}
+                for path in image_paths
+                if (data_url := image_to_data_url(path)) is not None
+            ],
             "metadata": {
                 "source": "face-enrollment-desktop",
                 "datasetDirectory": str(saved_dir),

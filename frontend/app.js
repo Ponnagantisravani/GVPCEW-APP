@@ -165,6 +165,11 @@ async function submitEnrollment() {
       section: elements.section.value.trim() || undefined,
       embedding: state.latestEmbedding,
       sampleCount: state.latestSampleCount,
+      referenceImages: state.captures.map((_, index) => `${rollNumber}_${index + 1}.png`),
+      capturedImages: state.captures.map((capture, index) => ({
+        fileName: `${rollNumber}_${index + 1}.png`,
+        dataUrl: capture
+      })),
       metadata: {
         source: "web-ui",
         captured_frames: state.captures.length

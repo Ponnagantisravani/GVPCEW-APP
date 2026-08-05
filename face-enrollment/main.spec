@@ -110,6 +110,18 @@ for package in (
     hiddenimports += _collect_hidden(package)
 
 hiddenimports += [
+    "tkinter",
+    "tkinter.colorchooser",
+    "tkinter.commondialog",
+    "tkinter.constants",
+    "tkinter.dialog",
+    "tkinter.dnd",
+    "tkinter.filedialog",
+    "tkinter.font",
+    "tkinter.messagebox",
+    "tkinter.scrolledtext",
+    "tkinter.simpledialog",
+    "tkinter.ttk",
     "PIL.Image",
     "PIL.ImageTk",
     "api.client",
