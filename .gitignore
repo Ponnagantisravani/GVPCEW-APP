@@ -3,3 +3,5 @@ backend/node_modules/
 venv/
 __pycache__/
 .env
+dataset/
+tools/__pycache__/

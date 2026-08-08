@@ -8,6 +8,7 @@ class BackendClient:
         self.base_url = (base_url or os.getenv("BACKEND_URL", "https://gvpcew-app.onrender.com")).rstrip("/")
         self.timeout = timeout
         self.api_base_url = self._normalize_api_base_url(self.base_url)
+        self.enrollment_api_key = os.getenv("ENROLLMENT_API_KEY", "")
 
     def lookup_student(self, roll_number):
         response = requests.post(
@@ -21,6 +22,7 @@ class BackendClient:
         response = requests.post(
             self._url("/enrollment/upload"),
             json=payload,
+            headers={"X-Enrollment-Key": self.enrollment_api_key},
             timeout=self.timeout
         )
         return self._parse_response(response)

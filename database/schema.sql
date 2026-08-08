@@ -68,6 +68,18 @@ create table if not exists face_embeddings (
   created_at timestamptz not null default now()
 );
 
+create table if not exists dataset_images (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  roll_number text not null,
+  original_name text not null,
+  storage_key text not null unique,
+  checksum text not null unique,
+  content_type text not null check (content_type in ('image/jpeg', 'image/png')),
+  byte_size integer not null check (byte_size > 0),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists attendance (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references students(id) on delete cascade,
@@ -110,3 +122,4 @@ create table if not exists audit_logs (
 create index if not exists idx_attendance_student on attendance(student_id);
 create index if not exists idx_attendance_subject on attendance(subject_id);
 create index if not exists idx_attendance_marked_at on attendance(marked_at);
+create index if not exists idx_dataset_images_roll_number on dataset_images(roll_number);

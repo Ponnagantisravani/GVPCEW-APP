@@ -40,6 +40,7 @@ async function resetSchema(client) {
     "drop table if exists attendance_logs cascade",
     "drop table if exists attendance cascade",
     "drop table if exists face_embeddings cascade",
+    "drop table if exists dataset_images cascade",
     "drop table if exists timetable cascade",
     "drop table if exists subjects cascade",
     "drop table if exists classrooms cascade",

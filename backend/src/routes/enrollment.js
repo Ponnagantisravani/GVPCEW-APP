@@ -1,16 +1,14 @@
 import { Router } from "express";
-import fs from "fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
+import crypto from "crypto";
+import sharp from "sharp";
 import { z } from "zod";
 import { pool } from "../config/db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { putPrivateImage } from "../utils/objectStorage.js";
+import { requireEnrollmentKey } from "../middleware/datasetAuth.js";
 
 export const enrollmentRouter = Router();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsRoot = path.resolve(__dirname, "../uploads/datasets");
 
 const capturedImageSchema = z.object({
   fileName: z.string().min(1),
@@ -48,37 +46,39 @@ function decodeDataUrl(dataUrl) {
   }
 
   const extension = match[1].toLowerCase() === "png" ? "png" : "jpg";
-  return {
-    extension,
-    buffer: Buffer.from(match[2], "base64")
-  };
+  const buffer = Buffer.from(match[2], "base64");
+  return buffer.length ? { extension, buffer } : null;
 }
 
-async function saveCapturedImages(rollNumber, capturedImages = []) {
-  if (capturedImages.length === 0) {
-    return [];
-  }
-
+async function saveCapturedImages(client, studentId, rollNumber, capturedImages = []) {
   const safeRollNumber = sanitizePathPart(rollNumber);
-  const studentUploadDir = path.join(uploadsRoot, safeRollNumber);
-  await fs.mkdir(studentUploadDir, { recursive: true });
-
   const savedImages = [];
   for (const [index, image] of capturedImages.entries()) {
     const decoded = decodeDataUrl(image.dataUrl);
-    if (!decoded) {
+    if (!decoded || decoded.buffer.length > 8 * 1024 * 1024) throw new Error("Invalid or oversized captured image");
+
+    const metadata = await sharp(decoded.buffer, { limitInputPixels: 16_000_000 }).metadata();
+    if (!metadata.width || !metadata.height || !["jpeg", "png"].includes(metadata.format)) throw new Error("Captured file is not a valid JPEG or PNG image");
+
+    const checksum = crypto.createHash("sha256").update(decoded.buffer).digest("hex");
+    const existing = await client.query("select id, original_name, storage_key, checksum, content_type from dataset_images where checksum = $1", [checksum]);
+    if (existing.rowCount) {
+      savedImages.push({ ...existing.rows[0], duplicate: true });
       continue;
     }
 
     const sourceName = path.parse(sanitizePathPart(image.fileName)).name || `${safeRollNumber}_${index + 1}`;
-    const fileName = `${sourceName}.${decoded.extension}`;
-    const filePath = path.join(studentUploadDir, fileName);
-    await fs.writeFile(filePath, decoded.buffer);
-    savedImages.push({
-      fileName,
-      path: filePath,
-      url: `/uploads/datasets/${safeRollNumber}/${fileName}`
-    });
+    const extension = metadata.format === "png" ? "png" : "jpg";
+    const fileName = `${sourceName}.${extension}`;
+    const storageKey = `dataset/${safeRollNumber}/${checksum}.${extension}`;
+    await putPrivateImage(storageKey, decoded.buffer, metadata.format === "png" ? "image/png" : "image/jpeg");
+    const inserted = await client.query(
+      `insert into dataset_images (student_id, roll_number, original_name, storage_key, checksum, content_type, byte_size)
+       values ($1, $2, $3, $4, $5, $6, $7)
+       on conflict (checksum) do nothing returning id, original_name, storage_key, checksum, content_type`,
+      [studentId, rollNumber, fileName, storageKey, checksum, metadata.format === "png" ? "image/png" : "image/jpeg", decoded.buffer.length]
+    );
+    if (inserted.rowCount) savedImages.push(inserted.rows[0]);
   }
 
   return savedImages;
@@ -118,7 +118,7 @@ enrollmentRouter.post("/lookup", asyncHandler(async (req, res) => {
   res.json({ student });
 }));
 
-enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
+enrollmentRouter.post("/upload", requireEnrollmentKey, asyncHandler(async (req, res) => {
   const parsed = uploadSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ message: "Invalid enrollment payload" });
@@ -206,7 +206,7 @@ enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
       return res.status(409).json({ message: "Student is already enrolled" });
     }
 
-    const savedImages = await saveCapturedImages(rollNumber, capturedImages);
+    const savedImages = await saveCapturedImages(client, student.id, rollNumber, capturedImages);
 
     const enrollmentMetadata = {
       ...metadata,
@@ -219,7 +219,7 @@ enrollmentRouter.post("/upload", asyncHandler(async (req, res) => {
       processed_image_count: processedImageCount ?? sampleCount,
       enrollment_timestamp: enrolledAt || new Date().toISOString(),
       reference_images: parsed.data.referenceImages || savedImages.map((image) => image.fileName),
-      uploaded_images: savedImages
+      uploaded_images: savedImages.map(({ id, original_name, checksum }) => ({ id, originalName: original_name, checksum }))
     };
 
     await client.query(
