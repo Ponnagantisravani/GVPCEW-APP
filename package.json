@@ -4,7 +4,9 @@
   "scripts": {
     "build:enrollment": "powershell -ExecutionPolicy Bypass -File ./build-face-enrollment.ps1",
     "start": "npm --prefix backend start",
-    "dev": "npm --prefix backend run dev",
+    "dev": "npm --prefix frontend run dev",
+    "dev:api": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
     "db:init": "npm --prefix backend run db:init"
   }
 }

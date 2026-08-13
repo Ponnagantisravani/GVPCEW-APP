@@ -1,4 +1,27 @@
-# GVPCEW Automatic Attendance System
+# GVPCEW College Management & Student Portal
+
+The project now includes a Vite + React student portal and an Express + PostgreSQL API, while retaining the face-enrollment application.
+
+## Run locally
+
+1. Create `backend/.env` from `backend/.env.example` and supply `DATABASE_URL` and `JWT_SECRET`.
+2. Run `npm --prefix backend install`, then `npm --prefix backend run db:init` to load the schema and seed data.
+3. Run `npm --prefix frontend install`.
+4. Start the API with `npm run dev:api` and the portal with `npm run dev`.
+
+The portal opens on `http://localhost:5173`. The seeded student account is `student1@gvpcew.ac.in` with password `password`.
+
+## Portal API
+
+- `POST /api/auth/login`
+- `GET /api/students/dashboard`, `/profile`, `/attendance`, `/marks`, `/timetable`, `/assignments`
+- `GET /api/notices`, `GET /api/events`, `POST /api/events/:id/register`
+
+All portal endpoints except login require a Bearer JWT. Student endpoints enforce the `student` role.
+
+---
+
+# Legacy face-enrollment system
 
 The first working phase is the face enrollment desktop application.
 

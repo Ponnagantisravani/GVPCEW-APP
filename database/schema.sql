@@ -15,6 +15,17 @@ create table if not exists users (
   created_at timestamptz not null default now()
 );
 
+-- A single person may work in more than one portal. `users.role` remains as a
+-- legacy/default role for existing data; authorization uses this mapping.
+create table if not exists user_roles (
+  user_id uuid not null references users(id) on delete cascade,
+  role text not null check (role in ('admin','faculty','academic_coordinator','student','student_coordinator')),
+  assigned_at timestamptz not null default now(),
+  assigned_by uuid references users(id) on delete set null,
+  primary key (user_id, role)
+);
+insert into user_roles(user_id, role) select id, role from users on conflict do nothing;
+
 create table if not exists students (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references users(id) on delete cascade,
@@ -24,6 +35,10 @@ create table if not exists students (
   admission_number text unique,
   created_at timestamptz not null default now()
 );
+
+alter table students add column if not exists face_enrollment_status text not null default 'pending'
+  check (face_enrollment_status in ('pending', 'completed'));
+alter table students add column if not exists face_enrolled_at timestamptz;
 
 create table if not exists faculty (
   id uuid primary key default gen_random_uuid(),
@@ -47,6 +62,24 @@ create table if not exists subjects (
   code text not null unique,
   name text not null,
   faculty_id uuid references faculty(id)
+);
+
+create table if not exists courses (
+  id uuid primary key default gen_random_uuid(),
+  department_id uuid references departments(id),
+  name text not null,
+  code text not null unique,
+  duration_years integer not null default 4 check (duration_years > 0),
+  active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists semesters (
+  id uuid primary key default gen_random_uuid(),
+  course_id uuid references courses(id) on delete cascade,
+  semester_number integer not null check (semester_number between 1 and 8),
+  academic_year text not null,
+  unique(course_id, semester_number, academic_year)
 );
 
 create table if not exists timetable (
@@ -100,6 +133,125 @@ create table if not exists attendance_logs (
   created_at timestamptz not null default now()
 );
 
+create table if not exists attendance_sessions (
+  id uuid primary key default gen_random_uuid(),
+  coordinator_user_id uuid not null references users(id),
+  subject_id uuid not null references subjects(id),
+  section text not null,
+  session_code text not null unique,
+  starts_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  stopped_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists marks (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  subject_id uuid not null references subjects(id) on delete cascade,
+  examination_type text not null check (examination_type in ('assignment','internal','mid_1','mid_2','semester')),
+  score numeric(6,2) not null check (score >= 0),
+  maximum_score numeric(6,2) not null check (maximum_score > 0),
+  created_by uuid references faculty(id),
+  updated_at timestamptz not null default now(),
+  unique(student_id, subject_id, examination_type)
+);
+
+create table if not exists assignments (
+  id uuid primary key default gen_random_uuid(),
+  subject_id uuid not null references subjects(id) on delete cascade,
+  faculty_id uuid not null references faculty(id),
+  title text not null,
+  description text,
+  deadline timestamptz not null,
+  attachment_url text,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists assignment_submissions (
+  id uuid primary key default gen_random_uuid(),
+  assignment_id uuid not null references assignments(id) on delete cascade,
+  student_id uuid not null references students(id) on delete cascade,
+  submission_url text not null,
+  submitted_at timestamptz not null default now(),
+  status text not null default 'submitted' check (status in ('submitted','late','reviewed')),
+  unique(assignment_id, student_id)
+);
+
+create table if not exists leave_requests (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references students(id) on delete cascade,
+  start_date date not null,
+  end_date date not null,
+  reason text not null,
+  status text not null default 'pending' check (status in ('pending','approved','rejected')),
+  reviewer_note text,
+  reviewed_by uuid references users(id) on delete set null,
+  reviewed_at timestamptz,
+  created_at timestamptz not null default now(),
+  check (end_date >= start_date)
+);
+
+create table if not exists examinations (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  type text not null check (type in ('internal','mid','semester')),
+  academic_year text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists exam_schedules (
+  id uuid primary key default gen_random_uuid(),
+  examination_id uuid not null references examinations(id) on delete cascade,
+  subject_id uuid not null references subjects(id),
+  classroom_id uuid references classrooms(id),
+  exam_date date not null,
+  start_time time not null,
+  end_time time not null
+);
+
+create table if not exists notices (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text not null,
+  category text not null default 'general',
+  published_at timestamptz not null default now(),
+  expires_at timestamptz,
+  attachment_url text,
+  author_id uuid references users(id)
+);
+
+create table if not exists events (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  description text,
+  category text not null,
+  starts_at timestamptz not null,
+  ends_at timestamptz,
+  location text,
+  capacity integer check (capacity > 0),
+  created_at timestamptz not null default now()
+);
+
+create table if not exists event_registrations (
+  id uuid primary key default gen_random_uuid(),
+  event_id uuid not null references events(id) on delete cascade,
+  student_id uuid not null references students(id) on delete cascade,
+  registered_at timestamptz not null default now(),
+  unique(event_id, student_id)
+);
+
+create table if not exists notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references users(id) on delete cascade,
+  title text not null,
+  body text not null,
+  type text not null default 'info',
+  link text,
+  read_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists login_logs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references users(id) on delete cascade,
@@ -123,3 +275,7 @@ create index if not exists idx_attendance_student on attendance(student_id);
 create index if not exists idx_attendance_subject on attendance(subject_id);
 create index if not exists idx_attendance_marked_at on attendance(marked_at);
 create index if not exists idx_dataset_images_roll_number on dataset_images(roll_number);
+create index if not exists idx_marks_student on marks(student_id);
+create index if not exists idx_assignments_deadline on assignments(deadline);
+create index if not exists idx_leave_requests_student on leave_requests(student_id, created_at desc);
+create index if not exists idx_notifications_user_unread on notifications(user_id) where read_at is null;

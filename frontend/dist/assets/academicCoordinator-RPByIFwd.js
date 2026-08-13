@@ -1,0 +1,1 @@
+import"./RoleDashboards-DPus_z9H.js";import{t as e}from"./portal-QcjHpDG4.js";/* empty css                    */e(`academic_coordinator`);

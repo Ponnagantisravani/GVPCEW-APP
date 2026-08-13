@@ -16,3 +16,13 @@ export function requireAuth(req, res, next) {
     res.status(401).json({ message: "Invalid token" });
   }
 }
+
+export function allowRoles(...roles) {
+  return (req, res, next) => {
+    const userRoles = req.user?.roles || (req.user?.role ? [req.user.role] : []);
+    if (!req.user || !roles.some((role) => userRoles.includes(role))) {
+      return res.status(403).json({ message: 'You do not have access to this resource' });
+    }
+    next();
+  };
+}

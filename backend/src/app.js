@@ -9,7 +9,9 @@ export function createApp() {
   const app = express();
 
   app.use(helmet());
-  app.use(cors({ origin: false }));
+  // The Vite portal runs on a different local origin (normally port 5173),
+  // so browser API requests must be allowed through CORS.
+  app.use(cors({ origin: true }));
   app.use(express.json({ limit: "25mb" }));
   app.use("/api/enrollment", rateLimit({ windowMs: 15 * 60 * 1000, limit: 40, standardHeaders: true, legacyHeaders: false }));
   app.use(morgan("dev"));
