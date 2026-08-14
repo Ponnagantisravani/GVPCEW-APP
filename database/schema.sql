@@ -82,6 +82,20 @@ create table if not exists semesters (
   unique(course_id, semester_number, academic_year)
 );
 
+-- A section is the authoritative class group used to distribute a published
+-- timetable to its students (for example: CSE, year 3, semester 5, CSE-3).
+create table if not exists academic_sections (
+  id uuid primary key default gen_random_uuid(),
+  department_id uuid not null references departments(id),
+  year_number integer not null check (year_number between 1 and 4),
+  semester_number integer not null check (semester_number between 1 and 8),
+  section_name text not null,
+  academic_year text not null,
+  unique(department_id, year_number, semester_number, section_name, academic_year)
+);
+
+alter table students add column if not exists academic_section_id uuid references academic_sections(id);
+
 create table if not exists timetable (
   id uuid primary key default gen_random_uuid(),
   subject_id uuid not null references subjects(id) on delete cascade,
@@ -90,8 +104,17 @@ create table if not exists timetable (
   day_of_week int not null check (day_of_week between 0 and 6),
   start_time time not null,
   end_time time not null,
-  academic_year text not null
+  academic_year text not null,
+  academic_section_id uuid references academic_sections(id),
+  status text not null default 'draft' check (status in ('draft','published')),
+  published_at timestamptz,
+  published_by uuid references users(id),
+  updated_at timestamptz not null default now(),
+  entry_type text not null default 'class' check (entry_type in ('class','lab','break','library','counselling','other'))
 );
+
+create index if not exists idx_timetable_section_published on timetable(academic_section_id, status, day_of_week, start_time);
+create index if not exists idx_timetable_faculty_published on timetable(faculty_id, status, day_of_week, start_time);
 
 create table if not exists face_embeddings (
   id uuid primary key default gen_random_uuid(),

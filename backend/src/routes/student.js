@@ -39,7 +39,8 @@ studentRouter.get('/timetable', async (req, res) => {
   const { rows } = await pool.query(`select t.day_of_week, t.start_time, t.end_time, su.code, su.name subject,
     u.full_name faculty, c.room_code classroom from timetable t join subjects su on su.id=t.subject_id
     join faculty f on f.id=t.faculty_id join users u on u.id=f.user_id join classrooms c on c.id=t.classroom_id
-    order by t.day_of_week, t.start_time`);
+    join students me on me.academic_section_id=t.academic_section_id
+    where me.user_id=$1 and t.status='published' order by t.day_of_week, t.start_time`, [req.user.sub]);
   res.json({ timetable: rows });
 });
 

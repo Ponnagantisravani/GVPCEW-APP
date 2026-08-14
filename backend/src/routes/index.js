@@ -6,6 +6,7 @@ import { datasetRouter } from "./dataset.js";
 import { studentRouter } from './student.js';
 import { portalRouter } from './portal.js';
 import { attendanceSessionRouter } from './attendanceSessions.js';
+import { timetableRouter } from './timetable.js';
 
 export const router = Router();
 
@@ -16,3 +17,4 @@ router.use("/dataset", datasetRouter);
 router.use('/students', studentRouter);
 router.use('/', portalRouter);
 router.use('/attendance-sessions', attendanceSessionRouter);
+router.use('/timetables', timetableRouter);
