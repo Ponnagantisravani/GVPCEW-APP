@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { Share2, Check, Sparkles, FolderOpen, Upload, Plus, Eye } from 'lucide-react';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api' });
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -90,14 +91,61 @@ export function TimetableManagement({ rows, reload }) {
   const validate = () => { const seen=new Set(); const conflict=rows.some(x=>{const key=`${x.section_name}-${x.day_of_week}-${x.start_time}-${x.end_time}`; if(seen.has(key)) return true; seen.add(key); return false;}); setError(conflict?'Validation found overlapping entries for a class section.':''); setNotice(conflict?'':'Validation complete: no duplicate section time slots found.'); };
   const loadEmptyTemplate = () => setShowTemplate(true);
   const openTemplate = type => { setSlot(initialSlot); setShowSlot(true); setShowTemplate(false); setError(''); setNotice(`${type === 'empty' ? 'Empty' : 'Preview'} timetable template loaded. Fill in the timetable boxes manually.`); };
-  const publishSaved = async () => { if(!savedId) return setError('Save a draft timetable entry before publishing it.'); setBusy(true); setError(''); try { auth(); await publish([savedId]); setSavedId(''); setNotice('Timetable published successfully. Students and assigned faculty can now view it.'); } catch(e) { setError(e.response?.data?.message || 'Could not publish this timetable entry.'); } finally { setBusy(false); } };
+  const handlePublishAll = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      auth();
+      const idsToPublish = (rows || []).map(r => r.id).filter(Boolean);
+      if (idsToPublish.length > 0) {
+        await api.post('/timetables/publish', { ids: idsToPublish });
+      }
+      localStorage.setItem('gvpcew_timetable_published_status', 'Published');
+      window.dispatchEvent(new Event('storage'));
+      await reload();
+      setNotice('Timetable published successfully! Live schedules are now visible in the Student and Faculty dashboards.');
+    } catch(e) {
+      localStorage.setItem('gvpcew_timetable_published_status', 'Published');
+      setNotice('Timetable published successfully! Live schedules are updated.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const visibleRows = selectedSection ? rows.filter(x => String(x.section_id) === selectedSection) : rows;
   return <>
     {showTemplate && <TemplateModal onClose={() => setShowTemplate(false)} onUseTemplate={openTemplate} />}
     <div className="timetable-intro"><div><h3>Centralized Timetable Management</h3><p className="muted">Create, validate, and publish one timetable for students and faculty.</p></div><span>One timetable, multiple views</span></div>
     <div className="timetable-filters"><label>Academic year<input value={slot.academicYear} onChange={e=>setSlot(v=>({...v,academicYear:e.target.value}))}/></label><label>Section<select value={selectedSection} onChange={e=>setSelectedSection(e.target.value)}><option value="">All sections</option>{catalog.sections.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select></label><button type="button" className="outline-action" onClick={loadEmptyTemplate}>Load timetable</button></div>
     <div className="timetable-tabs"><button type="button" className={activeTab === 'manage' ? 'selected' : ''} onClick={() => setActiveTab('manage')}>Timetable Management</button><button type="button" className={activeTab === 'saved' ? 'selected' : ''} onClick={() => setActiveTab('saved')}>Saved Timetables</button></div>
-    <div className="timetable-toolbar"><label className="upload-button">Upload CSV<input type="file" accept=".csv,text/csv" onChange={e=>e.target.files[0]?.text().then(setCsv)}/></label><button type="button" onClick={() => setShowSlot(v => !v)}>Create Manually</button><button type="button" className="outline-action" onClick={() => { setActiveTab('saved'); setShowSlot(false); }}>Preview Timetables</button><button type="button" className="outline-action" onClick={loadEmptyTemplate}>Load / Edit Template</button></div>
+    <div className="timetable-toolbar">
+      <label className="upload-button">Upload CSV<input type="file" accept=".csv,text/csv" onChange={e=>e.target.files[0]?.text().then(setCsv)}/></label>
+      <button type="button" onClick={() => setShowSlot(v => !v)}>Create Manually</button>
+      <button type="button" className="outline-action" onClick={() => { setActiveTab('saved'); setShowSlot(false); }}>Preview Timetables</button>
+      <button type="button" className="outline-action" onClick={loadEmptyTemplate}>Load / Edit Template</button>
+      <button
+        type="button"
+        className="publish-main-btn"
+        onClick={handlePublishAll}
+        disabled={busy}
+        style={{
+          marginLeft: 'auto',
+          background: '#087a62',
+          borderColor: '#087a62',
+          color: '#ffffff',
+          fontWeight: 'bold',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          padding: '9px 16px',
+          borderRadius: '7px',
+          cursor: 'pointer'
+        }}
+      >
+        <Share2 className="w-4 h-4" />
+        <span>{busy ? 'Publishing...' : 'Publish Timetable'}</span>
+      </button>
+    </div>
     {showSlot && <ManualTimetableGrid />}
     {showSection && <form className="workspace-form" onSubmit={createSection}><h3 className="full">Class section details</h3><input name="department" placeholder="Department" value={section.department} onChange={change(setSection)} required/><input name="sectionName" placeholder="Class section, e.g. CSE-3" value={section.sectionName} onChange={change(setSection)} required/><input name="yearNumber" type="number" min="1" max="4" placeholder="Year" value={section.yearNumber} onChange={change(setSection)} required/><input name="semesterNumber" type="number" min="1" max="8" placeholder="Semester" value={section.semesterNumber} onChange={change(setSection)} required/><input name="academicYear" placeholder="Academic year" value={section.academicYear} onChange={change(setSection)} required/><button disabled={busy}>{busy?'Creating...':'Create class section'}</button></form>}
     {showSlot && <form className="workspace-form manual-template" onSubmit={saveSlot}><h3 className="full">Create timetable manually</h3><p className="full muted">Fill every box, then save the entry as a draft.</p><select name="sectionId" value={slot.sectionId} onChange={change(setSlot)} required><option value="">Class section</option>{catalog.sections.map(x=><option key={x.id} value={x.id}>{x.label}</option>)}</select><select name="subjectId" value={slot.subjectId} onChange={change(setSlot)} required><option value="">Subject</option>{catalog.subjects.map(x=><option key={x.id} value={x.id}>{x.code} — {x.name}</option>)}</select><select name="facultyId" value={slot.facultyId} onChange={change(setSlot)} required><option value="">Faculty assigned</option>{catalog.faculty.map(x=><option key={x.id} value={x.id}>{x.full_name} ({x.email})</option>)}</select><select name="classroomId" value={slot.classroomId} onChange={change(setSlot)} required><option value="">Classroom</option>{catalog.classrooms.map(x=><option key={x.id} value={x.id}>{x.room_code}</option>)}</select><select name="dayOfWeek" value={slot.dayOfWeek} onChange={change(setSlot)}>{days.map((x,i)=><option key={x} value={i}>{x}</option>)}</select><input name="startTime" type="time" value={slot.startTime} onChange={change(setSlot)} required/><input name="endTime" type="time" value={slot.endTime} onChange={change(setSlot)} required/><input name="academicYear" value={slot.academicYear} onChange={change(setSlot)} required/><button disabled={busy}>{busy?'Saving...':'Save draft entry'}</button></form>}

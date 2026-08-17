@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Edit3, Check, Save, Share2, FolderOpen, Plus, Trash2, X, RotateCcw, Sparkles } from 'lucide-react';
+import { Calendar, Edit3, Check, Save, Share2, FolderOpen, Plus, Trash2, X, RotateCcw, Sparkles, Printer } from 'lucide-react';
 
 export const CALENDAR_TEMPLATES = [
   {
@@ -258,10 +258,30 @@ export function AcademicCalendarManagement({ role = 'academic_coordinator' }) {
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [notice, setNotice] = useState('');
 
-  // Persist to local storage
+  // Persist to local storage (only when editor modifies)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(calendar));
-  }, [calendar]);
+    if (isEditor) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(calendar));
+    }
+  }, [calendar, isEditor]);
+
+  // Sync automatically when academic coordinator publishes or updates calendar
+  useEffect(() => {
+    const handleSync = (e) => {
+      if ((!e || e.key === STORAGE_KEY) && localStorage.getItem(STORAGE_KEY)) {
+        try {
+          const fresh = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (fresh) setCalendar(fresh);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, []);
 
   const showNotification = (msg) => {
     setNotice(msg);
@@ -445,6 +465,30 @@ export function AcademicCalendarManagement({ role = 'academic_coordinator' }) {
               title="Reset to default template"
             >
               <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Student View Banner */}
+      {!isEditor && (
+        <div className="calendar-top-toolbar no-print">
+          <div className="calendar-toolbar-left flex items-center gap-2">
+            <span className="calendar-status-badge published">
+              Published Academic Calendar
+            </span>
+            <span className="text-xs text-slate-500 font-semibold hidden sm:inline">
+              Gayatri Vidya Parishad College of Engineering for Women (Autonomous)
+            </span>
+          </div>
+          <div className="calendar-toolbar-right flex items-center gap-2">
+            <button
+              type="button"
+              className="calendar-btn print-card-btn"
+              onClick={() => window.print()}
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Calendar</span>
             </button>
           </div>
         </div>

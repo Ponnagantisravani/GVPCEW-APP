@@ -266,10 +266,30 @@ export function ExamScheduleManagement({ role = 'academic_coordinator' }) {
 
   const currentSchedule = schedules[selectedExamKey] || schedules.regular_apr_2026;
 
-  // Persist changes
+  // Persist changes (only when editor modifies)
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
-  }, [schedules]);
+    if (isEditor) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(schedules));
+    }
+  }, [schedules, isEditor]);
+
+  // Sync automatically when academic coordinator publishes or updates exam schedules
+  useEffect(() => {
+    const handleSync = (e) => {
+      if ((!e || e.key === STORAGE_KEY) && localStorage.getItem(STORAGE_KEY)) {
+        try {
+          const fresh = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (fresh) setSchedules(fresh);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, []);
 
   const showNotice = (msg) => {
     setNotice(msg);
@@ -437,6 +457,10 @@ export function ExamScheduleManagement({ role = 'academic_coordinator' }) {
 
         {/* Coordinator / Admin Action Buttons */}
         <div className="exam-action-buttons">
+          <span className={`calendar-status-badge ${currentSchedule.status === 'Published' ? 'published' : 'draft'}`}>
+            {isEditing ? 'Editing Mode' : (currentSchedule.status || 'Draft')}
+          </span>
+
           <button
             type="button"
             className="exam-btn print-btn"
@@ -458,25 +482,22 @@ export function ExamScheduleManagement({ role = 'academic_coordinator' }) {
                 <span>{isEditing ? 'Done Editing' : 'Edit Exam Schedule'}</span>
               </button>
 
-              {isEditing ? (
-                <>
-                  <button type="button" className="exam-btn save-btn" onClick={handleSaveDraft}>
-                    <Save className="w-4 h-4" />
-                    <span>Save Draft</span>
-                  </button>
-                  <button type="button" className="exam-btn publish-btn" onClick={handlePublish}>
-                    <Share2 className="w-4 h-4" />
-                    <span>Publish Schedule</span>
-                  </button>
-                </>
-              ) : (
-                currentSchedule.status !== 'Published' && (
-                  <button type="button" className="exam-btn publish-btn" onClick={handlePublish}>
-                    <Share2 className="w-4 h-4" />
-                    <span>Publish Schedule</span>
-                  </button>
-                )
+              {isEditing && (
+                <button type="button" className="exam-btn save-btn" onClick={handleSaveDraft}>
+                  <Save className="w-4 h-4" />
+                  <span>Save Draft</span>
+                </button>
               )}
+
+              <button
+                type="button"
+                className="exam-btn publish-btn"
+                onClick={handlePublish}
+                title="Publish this examination schedule live for all students and faculty"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Publish Schedule</span>
+              </button>
             </>
           )}
         </div>

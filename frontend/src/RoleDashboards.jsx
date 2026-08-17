@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
-import { Bell, BookOpen, GraduationCap, Home, IdCard, LayoutDashboard, LogOut, Menu, RefreshCw, UserRound, X } from 'lucide-react';
+import { Bell, BookOpen, Calendar, GraduationCap, Home, IdCard, LayoutDashboard, LogOut, Menu, RefreshCw, UserRound, X } from 'lucide-react';
 import { TimetableManagement } from './TimetableManagement.jsx';
 import { AcademicCalendarManagement } from './AcademicCalendarManagement.jsx';
 import { ExamScheduleManagement } from './ExamScheduleManagement.jsx';
+import { DigitalIdCard } from './DigitalIdCard.jsx';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api' });
-const menus={admin:['User Management','Academic Management','Timetable Monitoring','Attendance Monitoring','Exam Schedule','Notices & Announcements'],faculty:['My Timetable','Attendance','Attendance Analytics','My Subjects','Assignments','Marks','Exam Schedule','Class Announcements'],academic_coordinator:['Timetable Management','Conflict Detection','Class & Section Management','Academic Calendar','Exam Schedule','Academic Announcements','Academic Reports'],student:['Student Profile','Digital ID','Attendance','My Timetable','My Subjects','Assignments','Internal Marks & Results','Exam Schedule','Leave Requests','Notices & Announcements','Academic Calendar','Notifications'],student_coordinator:['Live Attendance','Start / Stop Attendance','Present & Absent Students','Class Timetable','Class Announcements','Class Information','Session QR & Timer']};
+const menus={admin:['User Management','Academic Management','Timetable Monitoring','Attendance Monitoring','Exam Schedule','Notices & Announcements'],faculty:['My Timetable','Attendance','Attendance Analytics','My Subjects','Assignments','Marks','Exam Schedule','Class Announcements'],academic_coordinator:['Timetable Management','Conflict Detection','Class & Section Management','Academic Calendar','Exam Schedule','Academic Announcements','Academic Reports'],student:['Academic Calendar','Exam Schedule','Digital ID','Student Profile','Attendance','My Timetable','My Subjects','Assignments','Internal Marks & Results','Leave Requests','Notices & Announcements','Notifications'],student_coordinator:['Live Attendance','Start / Stop Attendance','Present & Absent Students','Class Timetable','Class Announcements','Class Information','Session QR & Timer']};
 const headlines={admin:'System Control Center',faculty:'Teaching Operations',academic_coordinator:'Academic Operations',student:'Student Portal',student_coordinator:'Classroom Operations'};
 const statLabels={admin:['Total Students','Total Faculty','Active Sessions','Active Notices'],faculty:['Total Subjects','Today’s Classes','Active Sessions','Active Notices'],academic_coordinator:['Total Subjects','Total Students','Total Faculty','Active Notices'],student:['Attendance','Assignments','Upcoming Events','Notifications'],student_coordinator:['Total Subjects','Active Session','Active Sessions','Active Notices']};
 const day=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -28,12 +29,90 @@ function AttendanceControl({subjects,onChanged}) { const [sessions,setSessions]=
   return <><form className="workspace-form" onSubmit={start}><select value={form.subjectId} onChange={e=>setForm({...form,subjectId:e.target.value})} required><option value="">Select subject</option>{subjects.map(s=><option key={s.id} value={s.id}>{s.code} — {s.name}</option>)}</select><input value={form.section} onChange={e=>setForm({...form,section:e.target.value})} placeholder="Section" required/><input type="number" min="1" max="30" value={form.durationMinutes} onChange={e=>setForm({...form,durationMinutes:e.target.value})} required/><button disabled={busy}>{busy?'Starting…':'Start attendance session'}</button>{error&&<p className="error">{error}</p>}</form><Table columns={['Subject','Section','Session code','Expires','Action']} rows={sessions.map(s=>[`${s.code} — ${s.subject}`,s.section,s.session_code,new Date(s.expires_at).toLocaleTimeString(),<button className="text-button" onClick={()=>stop(s.id)}>Stop</button>])}/></> }
 function LeaveRequests(){const [form,setForm]=useState({startDate:'',endDate:'',reason:''}),[requests,setRequests]=useState([]),[error,setError]=useState(''),[busy,setBusy]=useState(false);const load=async()=>{try{setRequests((await api.get('/students/leave-requests')).data.requests)}catch(e){setError(message(e))}};useEffect(()=>{load()},[]);async function submit(e){e.preventDefault();setError('');setBusy(true);try{await api.post('/students/leave-requests',form);setForm({startDate:'',endDate:'',reason:''});await load()}catch(e){setError(message(e))}finally{setBusy(false)}}return <><form className="workspace-form leave-form" onSubmit={submit}><label>From<input type="date" value={form.startDate} onChange={e=>setForm({...form,startDate:e.target.value})} required/></label><label>To<input type="date" value={form.endDate} onChange={e=>setForm({...form,endDate:e.target.value})} required/></label><label className="full">Reason<textarea value={form.reason} onChange={e=>setForm({...form,reason:e.target.value})} placeholder="Explain why you need leave" required/></label><button disabled={busy}>{busy?'Submitting…':'Submit leave request'}</button>{error&&<p className="error">{error}</p>}</form><Table columns={['From','To','Reason','Status','Submitted']} rows={requests.map(x=>[new Date(x.start_date).toLocaleDateString(),new Date(x.end_date).toLocaleDateString(),x.reason,<span className={`status ${x.status}`}>{x.status}</span>,new Date(x.created_at).toLocaleDateString()])}/></>}
 
+function StudentCalendarHighlight({ onNavigate }) {
+  const [calendar, setCalendar] = useState(() => {
+    try {
+      const saved = localStorage.getItem('gvpcew_academic_calendar');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return null;
+  });
+
+  useEffect(() => {
+    const handleSync = (e) => {
+      if ((!e || e.key === 'gvpcew_academic_calendar') && localStorage.getItem('gvpcew_academic_calendar')) {
+        try {
+          const fresh = JSON.parse(localStorage.getItem('gvpcew_academic_calendar'));
+          if (fresh) setCalendar(fresh);
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleSync);
+    window.addEventListener('focus', handleSync);
+    return () => {
+      window.removeEventListener('storage', handleSync);
+      window.removeEventListener('focus', handleSync);
+    };
+  }, []);
+
+  const firstSem = calendar?.semesters?.[0];
+  const items = firstSem?.rows?.slice(0, 4) || [
+    { description: 'Commencement of Class Work', from: '07-07-2025', to: '07-07-2025', duration: '—' },
+    { description: 'I Cycle of Instructions', from: '07-07-2025', to: '06-09-2025', duration: '9 W' },
+    { description: 'I Mid Examinations', from: '08-09-2025', to: '13-09-2025', duration: '1 W' },
+    { description: 'II Cycle of Instructions', from: '15-09-2025', to: '15-11-2025', duration: '9 W' }
+  ];
+
+  return (
+    <article className="panel span2 student-cal-highlight-panel" style={{ borderLeft: '4px solid #087a62', background: 'linear-gradient(135deg, #ffffff 0%, #f8fdfa 100%)' }}>
+      <div className="panel-head" style={{ marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <Calendar className="w-5 h-5 text-emerald-600" />
+          <h2 style={{ fontSize: '15px', margin: 0, color: '#0f172a' }}>Academic Calendar Highlights — {firstSem?.name || 'II B.Tech (2025–26)'}</h2>
+          <span style={{ fontSize: '11px', background: '#e3f8ef', color: '#087a62', padding: '3px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+            {calendar?.status === 'Published' ? 'Live Published' : 'Published'}
+          </span>
+        </div>
+        <button
+          onClick={() => onNavigate('Academic Calendar')}
+          style={{ background: '#087a62', color: '#fff', border: 0, padding: '7px 14px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
+        >
+          View Full Calendar →
+        </button>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+        {items.map((row, idx) => (
+          <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px 12px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+            <p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold', color: '#1e293b' }}>{row.description}</p>
+            <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#087a62', fontWeight: '700' }}>
+              {row.from} {row.to && row.to !== row.from ? `to ${row.to}` : ''} {row.duration && row.duration !== '—' ? `(${row.duration})` : ''}
+            </p>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
 export function RoleDashboard({role,name,active,onNavigate,onLogout,onRoleChange,roles}) {
   const [data,setData]=useState({subjects:[],timetable:[],notices:[],events:[],values:{}}),[student,setStudent]=useState({}),[loading,setLoading]=useState(true),[error,setError]=useState(''),[mobileOpen,setMobileOpen]=useState(false);
   const canPublish=['admin','faculty','academic_coordinator','student_coordinator'].includes(role); const canSessions=['faculty','student_coordinator'].includes(role);
   const load=async()=>{setLoading(true);setError('');api.defaults.headers.common.Authorization=`Bearer ${JSON.parse(localStorage.getItem('gvpcew_session')||'{}').token}`;try{const timetableUrl=role==='student'?'/timetables/student':role==='faculty'?'/timetables/faculty':role==='academic_coordinator'?'/timetables/coordinator':'/timetable';const base=await Promise.all([api.get(`/dashboard?role=${role}`),api.get('/subjects'),api.get(timetableUrl),api.get('/notices'),api.get('/events'),role==='admin'?api.get('/users'):Promise.resolve({data:{users:[]}})]);let studentData={};if(role==='student'){const s=await Promise.all([api.get('/students/dashboard'),api.get('/students/profile'),api.get('/students/attendance'),api.get('/students/assignments'),api.get('/students/marks')]);studentData={dashboard:s[0].data,profile:s[1].data.profile,attendance:s[2].data,assignments:s[3].data.assignments,marks:s[4].data.marks};}setData({values:base[0].data.values,subjects:base[1].data.subjects,timetable:base[2].data.timetable,notices:base[3].data.notices,events:base[4].data.events,users:base[5].data.users});setStudent(studentData)}catch(e){setError(message(e))}finally{setLoading(false)}};useEffect(()=>{load()},[role]);
   const items=menus[role]||[],isHome=active==='Dashboard';const values=role==='student'?{attendance:`${student.dashboard?.attendance ?? 0}%`,assignments:student.dashboard?.pendingAssignments ?? 0,events:student.events?.length ?? data.events.length,notifications:student.dashboard?.notifications?.filter(n=>!n.read_at).length ?? 0}:data.values;const statValues=role==='student'?[values.attendance,values.assignments,values.events,values.notifications]:role==='faculty'?[values.subjects,data.timetable.filter(t=>t.day_of_week===new Date().getDay()).length,values.sessions,values.notices]:role==='student_coordinator'?[values.subjects,values.sessions? 'Active':'None',values.sessions,values.notices]:role==='academic_coordinator'?[values.subjects,values.students,values.faculty,values.notices]:[values.students,values.faculty,values.sessions,values.notices];
-  return <div className="shell"><aside className={mobileOpen?'open':''}><div className="brand"><GraduationCap/> GVPCEW</div><p className="school">College of Engineering for Women</p>{roles.length>1&&<select className="role-switch" value={role} onChange={e=>onRoleChange(e.target.value)}>{roles.map(value=><option value={value} key={value}>{value.replaceAll('_',' ')}</option>)}</select>}<nav><button className={isHome?'active':''} onClick={()=>{onNavigate('Dashboard');setMobileOpen(false)}}><LayoutDashboard/>Dashboard</button>{items.map(item=><button key={item} className={active===item?'active':''} onClick={()=>{onNavigate(item);setMobileOpen(false)}}><BookOpen/>{item}</button>)}</nav><button className="logout" onClick={onLogout}><LogOut/>Sign out</button></aside><main className="content"><header><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)} aria-label="Open navigation">{mobileOpen?<X/>:<Menu/>}</button><div><p className="eyebrow">{role.replaceAll('_',' ').toUpperCase()}</p><h1>{isHome?`Welcome, ${name.split(' ')[0]}`:active}</h1></div><button className="notification" onClick={load} title="Refresh dashboard"><Bell/><i>0</i></button></header>{error&&<p className="error">{error}</p>}{loading?<div className="loading">Loading dashboard…</div>:isHome?<><section className="profile"><div className="avatar">{name[0]}</div><div><h2>{name}</h2><p>{student.profile?.department||headlines[role]}</p></div></section><section className="stats">{statLabels[role].map((label,index)=><Stat key={label} label={label} value={statValues[index]} index={index}/>)}</section><section className="grid">{items.slice(0,6).map(item=><article className="panel" key={item}><div className="panel-head"><h2>{item}</h2><button onClick={()=>onNavigate(item)}>Open</button></div><p className="muted">Open live academic records and available actions.</p></article>)}</section></>:<Workspace role={role} title={active} data={data} student={student} canPublish={canPublish} canSessions={canSessions} reload={load}/>}</main><nav className="bottom-nav" aria-label="Mobile navigation"><button className={isHome?'selected':''} onClick={()=>onNavigate('Dashboard')}><Home/><span>Home</span></button><button className={active.includes('Timetable')?'selected':''} onClick={()=>onNavigate(role==='student'?'My Timetable':'My Timetable')}><BookOpen/><span>Schedule</span></button><button className={active==='Digital ID'?'selected':''} onClick={()=>onNavigate(role==='student'?'Digital ID':items[0])}><IdCard/><span>ID</span></button><button onClick={()=>onNavigate(role==='student'?'Student Profile':items[0])}><UserRound/><span>Profile</span></button></nav></div>
+  const panelDescriptions = {
+    'Academic Calendar': 'View official academic year calendar, semester schedules & holidays.',
+    'Exam Schedule': 'View Mid-I, Mid-II internals & regular examination timetables.',
+    'Digital ID': 'View, customize, and print your official college digital ID card.',
+    'My Timetable': 'Check weekly class schedule, subject slots, and classroom locations.',
+    'Attendance': 'Track live subject-wise attendance and minimum criteria.',
+    'Student Profile': 'View your registered personal and academic college details.',
+    'Assignments': 'View ongoing assignments, submission status, and deadlines.',
+    'Internal Marks & Results': 'Check internal examination marks, mid evaluations, and results.',
+    'Notices & Announcements': 'Official circulars, events, and college notices.',
+    'Leave Requests': 'Submit and track student leave requests.'
+  };
+
+  return <div className="shell"><aside className={mobileOpen?'open':''}><div className="brand"><GraduationCap/> GVPCEW</div><p className="school">College of Engineering for Women</p>{roles.length>1&&<select className="role-switch" value={role} onChange={e=>onRoleChange(e.target.value)}>{roles.map(value=><option value={value} key={value}>{value.replaceAll('_',' ')}</option>)}</select>}<nav><button className={isHome?'active':''} onClick={()=>{onNavigate('Dashboard');setMobileOpen(false)}}><LayoutDashboard/>Dashboard</button>{items.map(item=><button key={item} className={active===item?'active':''} onClick={()=>{onNavigate(item);setMobileOpen(false)}}><BookOpen/>{item}</button>)}</nav><button className="logout" onClick={onLogout}><LogOut/>Sign out</button></aside><main className="content"><header><button className="mobile-menu" onClick={()=>setMobileOpen(!mobileOpen)} aria-label="Open navigation">{mobileOpen?<X/>:<Menu/>}</button><div><p className="eyebrow">{role.replaceAll('_',' ').toUpperCase()}</p><h1>{isHome?`Welcome, ${name.split(' ')[0]}`:active}</h1></div><button className="notification" onClick={load} title="Refresh dashboard"><Bell/><i>0</i></button></header>{error&&<p className="error">{error}</p>}{loading?<div className="loading">Loading dashboard…</div>:isHome?<><section className="profile"><div className="avatar">{name[0]}</div><div><h2>{name}</h2><p>{student.profile?.department||headlines[role]}</p></div></section><section className="stats">{statLabels[role].map((label,index)=><Stat key={label} label={label} value={statValues[index]} index={index}/>)}</section>{role==='student'&&<section className="grid" style={{marginBottom:18}}><StudentCalendarHighlight onNavigate={onNavigate}/></section>}<section className="grid">{items.map(item=><article className="panel" key={item}><div className="panel-head"><h2>{item}</h2><button onClick={()=>onNavigate(item)}>Open</button></div><p className="muted">{panelDescriptions[item] || 'Open live academic records and available actions.'}</p></article>)}</section></>:<Workspace role={role} title={active} data={data} student={student} canPublish={canPublish} canSessions={canSessions} reload={load}/>}</main><nav className="bottom-nav" aria-label="Mobile navigation"><button className={isHome?'selected':''} onClick={()=>onNavigate('Dashboard')}><Home/><span>Home</span></button><button className={active==='Academic Calendar'?'selected':''} onClick={()=>onNavigate(role==='student'?'Academic Calendar':'Academic Calendar')}><Calendar/><span>Calendar</span></button><button className={active.includes('Timetable')?'selected':''} onClick={()=>onNavigate(role==='student'?'My Timetable':'My Timetable')}><BookOpen/><span>Schedule</span></button><button className={active==='Digital ID'?'selected':''} onClick={()=>onNavigate(role==='student'?'Digital ID':items[0])}><IdCard/><span>ID</span></button><button onClick={()=>onNavigate(role==='student'?'Student Profile':items[0])}><UserRound/><span>Profile</span></button></nav></div>
 }
 function Workspace({role,title,data,student,canPublish,canSessions,reload}) { const timetable=data.timetable.map(x=>[day[x.day_of_week],`${formatTime(x.start_time)}–${formatTime(x.end_time)}`,x.subject,x.faculty,x.classroom]); const subjects=data.subjects.map(x=>[x.code,x.name,x.department,x.faculty]); const notices=data.notices.map(x=>[x.title,x.category,new Date(x.published_at).toLocaleDateString(),x.description]);
   let content;
@@ -50,6 +129,7 @@ function Workspace({role,title,data,student,canPublish,canSessions,reload}) { co
   else if(title.includes('Notice')||title.includes('Announcement'))content=<><Table columns={['Title','Category','Published','Details']} rows={notices}/>{canPublish&&<NoticeForm onCreated={reload}/>}</>;
   else if((title.includes('Attendance')||title.includes('Session'))&&canSessions)content=<AttendanceControl subjects={data.subjects} onChanged={reload}/>;
   else if(title==='Student Profile')content=<Table columns={['Name','Email','Roll number','Section','Department']} rows={student.profile?[[student.profile.full_name,student.profile.email,student.profile.roll_number,student.profile.section,student.profile.department]]:[]}/>;
+  else if(title.includes('Digital ID')||title==='Digital ID')content=<DigitalIdCard student={student}/>;
   else content=<><Table columns={['Event','Category','When','Location']} rows={data.events.map(x=>[x.title,x.category,new Date(x.starts_at).toLocaleString(),x.location])}/><p className="muted">This workspace displays the academic data available to your role.</p></>;
   return <section className="grid"><article className="panel span2"><div className="panel-head"><h2>{title}</h2><button onClick={reload}>Refresh</button></div>{content}</article></section>;
 }

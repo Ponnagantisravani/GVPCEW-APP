@@ -200,10 +200,317 @@
 }
 
 @media print {
-  aside, nav, .bottom-nav, .mobile-menu, header, .exam-top-toolbar, .calendar-notice-banner, .exam-add-row-bar, .cal-col-action, .exam-cell-action { display: none !important; }
+  aside, nav, .bottom-nav, .mobile-menu, header, .exam-top-toolbar, .calendar-notice-banner, .exam-add-row-bar, .cal-col-action, .exam-cell-action, .no-print { display: none !important; }
   .content { width: 100% !important; margin: 0 !important; padding: 0 !important; }
-  .exam-schedule-sheet { border: 0 !important; box-shadow: none !important; padding: 0 !important; max-width: 100% !important; }
+  .exam-schedule-sheet, .gvpcew-physical-card { border: 0 !important; box-shadow: none !important; padding: 0 !important; max-width: 100% !important; }
   .panel { border: 0 !important; box-shadow: none !important; padding: 0 !important; }
   .grid { display: block !important; }
   body { background: #ffffff !important; }
+}
+
+/* Digital ID Card (Official GVPCEW Replica) */
+.digital-id-container { display: flex; flex-direction: column; gap: 16px; width: 100%; }
+.id-card-toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 16px; background: #ffffff; border: 1px solid #dce6f4; border-radius: 10px; box-shadow: 0 2px 6px rgba(18, 35, 60, 0.04); }
+.id-toolbar-left, .id-toolbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.id-tool-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.18s ease; border: 1px solid transparent; }
+.upload-photo-btn { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+.upload-photo-btn:hover { background: #dcfce7; }
+.print-card-btn { background: #f8fafc; border-color: #cbd5e1; color: #334155; }
+.print-card-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+
+.id-edit-panel { background: #f8fbff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.05); }
+.id-form-input { width: 100%; padding: 6px 10px; font-size: 12px; font-weight: 600; border: 1px solid #cbd5e1; border-radius: 5px; background: #ffffff; color: #0f172a; }
+.id-form-input:focus { outline: 2px solid #3b82f6; border-color: #3b82f6; }
+
+/* Stage for ID Card Presentation */
+.id-card-stage { display: flex; justify-content: center; align-items: center; padding: 14px 0; }
+.gvpcew-physical-card {
+  width: min(580px, 100%);
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(15, 30, 60, 0.14), 0 0 0 1px rgba(15, 30, 60, 0.08);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease;
+}
+
+/* Card Header */
+.gvpcew-id-header {
+  background: linear-gradient(90deg, #00b4d8 0%, #0096c7 100%);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1.5px solid #0077b6;
+}
+
+.gvpcew-emblem-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.gvpcew-emblem-inner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #facc15;
+  background: radial-gradient(circle, #fffef0 20%, #fef08a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+.gvpcew-emblem-art {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.gvpcew-goddess-glow {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  opacity: 0.85;
+  box-shadow: 0 0 6px #f97316;
+}
+.gvpcew-telugu-arc {
+  font-size: 6px;
+  font-weight: 800;
+  color: #78350f;
+  line-height: 1;
+  margin-top: 1px;
+}
+.gvpcew-emblem-sub {
+  font-size: 8px;
+  font-weight: 800;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 1px;
+}
+
+.gvpcew-header-titles {
+  flex: 1;
+  text-align: left;
+}
+.gvpcew-title-primary {
+  font: 900 17px 'Manrope', sans-serif;
+  color: #fef08a;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  letter-spacing: 0.6px;
+  margin: 0;
+  line-height: 1.15;
+}
+.gvpcew-title-secondary {
+  font: 800 10.5px 'Manrope', sans-serif;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin: 2px 0 1px;
+  line-height: 1.2;
+}
+.gvpcew-title-affiliation {
+  font-size: 9.5px;
+  font-style: italic;
+  color: #e0f2fe;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Card Body */
+.gvpcew-id-body {
+  flex: 1;
+  display: flex;
+  padding: 14px 18px;
+  gap: 18px;
+  background: #ffffff;
+  position: relative;
+  min-height: 190px;
+}
+
+.gvpcew-photo-frame {
+  width: 125px;
+  height: 155px;
+  border: 1.5px solid #334155;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  background: #f8fafc;
+}
+.gvpcew-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gvpcew-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+}
+.gvpcew-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.gvpcew-photo-frame:hover .gvpcew-photo-overlay {
+  opacity: 1;
+}
+
+/* Details Column */
+.gvpcew-details-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+  z-index: 1;
+}
+.gvpcew-card-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #3b82f6 15%, transparent 70%);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.gvpcew-field-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gvpcew-row {
+  display: flex;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.gvpcew-label {
+  width: 74px;
+  font-weight: 800;
+  color: #0f172a;
+  flex-shrink: 0;
+}
+.gvpcew-colon {
+  width: 14px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  flex-shrink: 0;
+}
+.gvpcew-val {
+  font-weight: 800;
+  color: #1e3a8a;
+  letter-spacing: 0.2px;
+}
+.gvpcew-name-val {
+  color: #1e3a8a;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+}
+
+.gvpcew-roll-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.gvpcew-roll-label {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+}
+.gvpcew-roll-val {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+}
+
+/* Signature */
+.gvpcew-signature-box {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  width: 100px;
+}
+.gvpcew-sig-ink {
+  width: 85px;
+  height: 32px;
+  margin: 0 auto;
+}
+.gvpcew-sig-svg {
+  width: 100%;
+  height: 100%;
+}
+.gvpcew-sig-text {
+  font-size: 8px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+/* Card Footer */
+.gvpcew-id-footer {
+  background: linear-gradient(90deg, #00b4d8 0%, #0096c7 100%);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1.5px solid #0077b6;
+}
+.gvpcew-footer-branch, .gvpcew-footer-college-code {
+  font: 900 20px 'Manrope', sans-serif;
+  color: #fef08a;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  letter-spacing: 0.5px;
+}
+.gvpcew-footer-center {
+  text-align: center;
+  color: #0f172a;
+  line-height: 1.3;
+}
+.gvpcew-footer-addr {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+}
+.gvpcew-footer-contact {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .gvpcew-title-primary { font-size: 14px; }
+  .gvpcew-title-secondary { font-size: 9px; }
+  .gvpcew-title-affiliation { font-size: 8px; }
+  .gvpcew-photo-frame { width: 95px; height: 120px; }
+  .gvpcew-row { font-size: 11.5px; }
+  .gvpcew-roll-val { font-size: 13px; }
+  .gvpcew-footer-branch, .gvpcew-footer-college-code { font-size: 16px; }
+  .gvpcew-footer-addr, .gvpcew-footer-contact { font-size: 9px; }
 }
