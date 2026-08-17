@@ -1,35 +1,41 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Edit3, Save, Printer, RotateCcw, Check, Sparkles, User, Upload } from 'lucide-react';
+import {
+  Camera, Edit3, Save, Printer, RotateCcw, Check, Sparkles, User,
+  Upload, QrCode, ShieldCheck, Award, Phone, MapPin, RefreshCw, Layers
+} from 'lucide-react';
 
 export function DigitalIdCard({ student }) {
-  const STORAGE_KEY = 'gvpcew_digital_id';
+  const STORAGE_KEY = 'gvpcew_digital_id_v2';
   const fileInputRef = useRef(null);
 
   const defaultDetails = {
     name: student?.profile?.full_name || student?.full_name || 'PONNAGANTI SRAVANI',
     course: 'B.Tech',
-    batch: '2024-2028',
-    section: student?.profile?.section || student?.section || 'A',
-    branch: 'CSE',
+    branch: student?.profile?.department || 'Computer Science & Engineering',
+    branchCode: 'CSE',
+    batch: '2024–2028',
+    section: student?.profile?.section || 'A',
     rollNo: student?.profile?.roll_number || student?.roll_number || '324103210170',
-    contact: '0891-2739144,2526639',
-    address: 'Madhurawada, Visakhapatnam- 48',
+    dob: '15-08-2006',
+    bloodGroup: 'O+ Positive',
+    validTill: 'JULY 2028',
+    fatherName: 'P. Venkata Rao',
+    emergencyContact: '+91 98765 43210',
+    address: 'Madhurawada, Visakhapatnam - 530048',
+    collegeContact: '0891-2739144, 2526639',
     photo: student?.profile?.photo_url || ''
   };
 
   const [details, setDetails] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return { ...defaultDetails, ...JSON.parse(saved) };
-      }
-    } catch {
-      // fallback
-    }
+      if (saved) return { ...defaultDetails, ...JSON.parse(saved) };
+    } catch {}
     return defaultDetails;
   });
 
   const [isEditing, setIsEditing] = useState(false);
+  const [showBack, setShowBack] = useState(false);
   const [notice, setNotice] = useState('');
 
   // Persist to local storage
@@ -46,13 +52,13 @@ export function DigitalIdCard({ student }) {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('Please choose a photo smaller than 5MB.');
+        alert('Please choose an image under 5MB.');
         return;
       }
       const reader = new FileReader();
       reader.onload = () => {
         setDetails(prev => ({ ...prev, photo: reader.result }));
-        showNotice('Profile photo updated successfully!');
+        showNotice('Passport photo updated successfully!');
       };
       reader.readAsDataURL(file);
     }
@@ -63,10 +69,10 @@ export function DigitalIdCard({ student }) {
   };
 
   const handleReset = () => {
-    if (window.confirm('Reset ID Card details back to default?')) {
+    if (window.confirm('Reset ID card details to default?')) {
       setDetails(defaultDetails);
       setIsEditing(false);
-      showNotice('ID card details reset to default.');
+      showNotice('ID card details reset.');
     }
   };
 
@@ -88,7 +94,7 @@ export function DigitalIdCard({ student }) {
             type="button"
             className="id-tool-btn upload-photo-btn"
             onClick={() => fileInputRef.current?.click()}
-            title="Upload new passport photo from your computer/device"
+            title="Upload student photograph"
           >
             <Upload className="w-4 h-4 text-emerald-600" />
             <span>Upload Photo</span>
@@ -100,7 +106,17 @@ export function DigitalIdCard({ student }) {
             onClick={() => setIsEditing(prev => !prev)}
           >
             <Edit3 className="w-4 h-4" />
-            <span>{isEditing ? 'Done Editing' : 'Edit Names / Sections'}</span>
+            <span>{isEditing ? 'Close Editor' : 'Edit Details'}</span>
+          </button>
+
+          <button
+            type="button"
+            className="id-tool-btn"
+            style={{ background: '#eff6ff', borderColor: '#bfdbfe', color: '#1e40af' }}
+            onClick={() => setShowBack(prev => !prev)}
+          >
+            <Layers className="w-4 h-4" />
+            <span>{showBack ? 'View Front Side' : 'View Back Side'}</span>
           </button>
         </div>
 
@@ -109,7 +125,7 @@ export function DigitalIdCard({ student }) {
             type="button"
             className="id-tool-btn print-card-btn"
             onClick={() => window.print()}
-            title="Print or Save ID card as PDF"
+            title="Print Official ID Badge"
           >
             <Printer className="w-4 h-4" />
             <span>Print ID Card</span>
@@ -121,226 +137,275 @@ export function DigitalIdCard({ student }) {
             onClick={handleReset}
             title="Reset ID Card"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      {/* Notice Banner */}
+      {/* Notice Toast */}
       {notice && (
         <div className="calendar-notice-banner no-print">
-          <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
+          <Sparkles className="w-4 h-4 text-emerald-600" />
           <span>{notice}</span>
         </div>
       )}
 
-      {/* Edit Form Panel when editing mode is active */}
+      {/* Edit Form Panel */}
       {isEditing && (
-        <div className="id-edit-panel no-print">
-          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Edit3 className="w-4 h-4 text-blue-600" />
-            <span>Edit Digital ID Card Information</span>
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="id-edit-panel no-print" style={{ background: '#f8fafc', padding: '18px', borderRadius: '10px', border: '1px solid #cbd5e1', marginBottom: '16px' }}>
+          <h3 style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a', margin: '0 0 12px' }}>Edit Student ID Card Information</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-1">Student Full Name</label>
-              <input
-                type="text"
-                className="id-form-input"
-                value={details.name}
-                onChange={(e) => handleChange('name', e.target.value.toUpperCase())}
-                placeholder="e.g. PONNAGANTI SRAVANI"
-              />
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Student Full Name</label>
+              <input type="text" className="id-form-input" value={details.name} onChange={e => handleChange('name', e.target.value)} />
             </div>
-
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-1">Roll Number</label>
-              <input
-                type="text"
-                className="id-form-input"
-                value={details.rollNo}
-                onChange={(e) => handleChange('rollNo', e.target.value)}
-                placeholder="e.g. 324103210170"
-              />
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Roll Number</label>
+              <input type="text" className="id-form-input" value={details.rollNo} onChange={e => handleChange('rollNo', e.target.value)} />
             </div>
-
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-1">Course</label>
-              <input
-                type="text"
-                className="id-form-input"
-                value={details.course}
-                onChange={(e) => handleChange('course', e.target.value)}
-                placeholder="e.g. B.Tech"
-              />
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Branch / Department</label>
+              <input type="text" className="id-form-input" value={details.branch} onChange={e => handleChange('branch', e.target.value)} />
             </div>
-
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-1">Branch Code</label>
-              <select
-                className="id-form-input"
-                value={details.branch}
-                onChange={(e) => handleChange('branch', e.target.value)}
-              >
-                <option value="CSE">CSE (Computer Science & Engineering)</option>
-                <option value="IT">IT (Information Technology)</option>
-                <option value="CSM">CSM (CSE - AIML)</option>
-                <option value="ECE">ECE (Electronics & Communication)</option>
-                <option value="EEE">EEE (Electrical & Electronics)</option>
-              </select>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Branch Code (e.g. CSE)</label>
+              <input type="text" className="id-form-input" value={details.branchCode} onChange={e => handleChange('branchCode', e.target.value)} />
             </div>
-
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-1">Section</label>
-              <input
-                type="text"
-                className="id-form-input"
-                value={details.section}
-                onChange={(e) => handleChange('section', e.target.value)}
-                placeholder="e.g. A, B, CSE-1"
-              />
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Course</label>
+              <input type="text" className="id-form-input" value={details.course} onChange={e => handleChange('course', e.target.value)} />
             </div>
-
             <div>
-              <label className="text-xs font-bold text-slate-600 block mb-1">Batch / Academic Years</label>
-              <input
-                type="text"
-                className="id-form-input"
-                value={details.batch}
-                onChange={(e) => handleChange('batch', e.target.value)}
-                placeholder="e.g. 2024-2028"
-              />
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Section</label>
+              <input type="text" className="id-form-input" value={details.section} onChange={e => handleChange('section', e.target.value)} />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Batch</label>
+              <input type="text" className="id-form-input" value={details.batch} onChange={e => handleChange('batch', e.target.value)} />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Blood Group</label>
+              <input type="text" className="id-form-input" value={details.bloodGroup} onChange={e => handleChange('bloodGroup', e.target.value)} />
+            </div>
+            <div>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Valid Upto</label>
+              <input type="text" className="id-form-input" value={details.validTill} onChange={e => handleChange('validTill', e.target.value)} />
             </div>
           </div>
-          <div className="mt-3 flex justify-end">
+          <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
             <button
               type="button"
-              className="id-save-btn flex items-center gap-1.5 px-4 py-1.5 bg-emerald-600 text-white font-bold text-xs rounded hover:bg-emerald-700 cursor-pointer"
               onClick={() => { setIsEditing(false); showNotice('ID card details saved!'); }}
+              style={{ background: '#087a62', color: '#fff', border: 0, padding: '7px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}
             >
-              <Check className="w-3.5 h-3.5" /> Save Changes
+              Save Changes
             </button>
           </div>
         </div>
       )}
 
-      {/* Official GVPCEW ID Card Physical Replica */}
+      {/* ID Card Stage */}
       <div className="id-card-stage">
-        <div className="gvpcew-physical-card">
-          {/* Top Cyan / Turquoise Header Bar */}
-          <div className="gvpcew-id-header">
-            {/* Left Circular Emblem */}
-            <div className="gvpcew-emblem-badge">
-              <div className="gvpcew-emblem-inner">
-                <div className="gvpcew-emblem-art">
-                  <div className="gvpcew-goddess-glow"></div>
-                  <span className="gvpcew-telugu-arc">గాయత్రీ విద్యా పరిషత్</span>
+        {!showBack ? (
+          /* FRONT SIDE */
+          <div className="gvpcew-physical-card front">
+            {/* Top Cyan / Turquoise Header Bar */}
+            <div className="gvpcew-id-header">
+              {/* Official GVP Emblem Seal */}
+              <div className="gvpcew-emblem-badge">
+                <div className="gvpcew-emblem-inner">
+                  {/* Gayatri Mata Flame / Lamp Emblem Art */}
+                  <div className="gvp-crest-art">
+                    <div className="gvp-flame-core"></div>
+                    <div className="gvp-lamp-base"></div>
+                  </div>
                 </div>
+                <div className="gvp-telugu-text">గాయత్రీ విద్యా పరిషత్</div>
+                <div className="gvp-autonomous-tag">AUTONOMOUS</div>
               </div>
-              <span className="gvpcew-emblem-sub">Autonomous</span>
+
+              {/* Header Titles */}
+              <div className="gvpcew-header-titles">
+                <h1 className="gvpcew-title-primary">GAYATRI VIDYA PARISHAD</h1>
+                <h2 className="gvpcew-title-secondary">COLLEGE OF ENGINEERING FOR WOMEN</h2>
+                <p className="gvpcew-title-affiliation">(Autonomous • Affiliated to Andhra University, Visakhapatnam)</p>
+                <p className="gvpcew-title-sub">Approved by AICTE, New Delhi • Accredited by NBA & NAAC</p>
+              </div>
             </div>
 
-            {/* Header Text Block */}
-            <div className="gvpcew-header-titles">
-              <h1 className="gvpcew-title-primary">GAYATRI VIDYA PARISHAD</h1>
-              <h2 className="gvpcew-title-secondary">COLLEGE OF ENGINEERING FOR WOMEN (Autonomous)</h2>
-              <p className="gvpcew-title-affiliation">(Affiliated to AU, Visakhapatnam)</p>
+            {/* Card Body */}
+            <div className="gvpcew-id-body">
+              {/* Holographic Watermark Pattern */}
+              <div className="gvpcew-card-watermark">
+                <ShieldCheck className="w-36 h-36" />
+              </div>
+
+              {/* Student Photo */}
+              <div
+                className="gvpcew-photo-frame"
+                onClick={() => fileInputRef.current?.click()}
+                title="Click to change student photo"
+              >
+                {details.photo ? (
+                  <img src={details.photo} alt={details.name} className="gvpcew-photo-img" />
+                ) : (
+                  <div className="gvpcew-photo-placeholder">
+                    <User className="w-12 h-12 text-slate-400" />
+                    <span style={{ fontSize: '9px', fontWeight: 'bold', color: '#64748b', marginTop: '4px' }}>
+                      CLICK TO UPLOAD
+                    </span>
+                  </div>
+                )}
+                <div className="gvpcew-photo-overlay no-print">
+                  <Camera className="w-4 h-4 text-white" />
+                  <span style={{ fontSize: '8px', fontWeight: 'bold', color: '#fff', textTransform: 'uppercase' }}>Change</span>
+                </div>
+              </div>
+
+              {/* Student Details Column */}
+              <div className="gvpcew-details-column">
+                <div className="gvpcew-field-list">
+                  <div className="gvpcew-row">
+                    <span className="gvpcew-label">Name</span>
+                    <span className="gvpcew-colon">:</span>
+                    <span className="gvpcew-val gvpcew-name-val">{details.name}</span>
+                  </div>
+
+                  <div className="gvpcew-row">
+                    <span className="gvpcew-label">Course</span>
+                    <span className="gvpcew-colon">:</span>
+                    <span className="gvpcew-val">{details.course}</span>
+                  </div>
+
+                  <div className="gvpcew-row">
+                    <span className="gvpcew-label">Batch</span>
+                    <span className="gvpcew-colon">:</span>
+                    <span className="gvpcew-val">{details.batch}</span>
+                  </div>
+
+                  <div className="gvpcew-row">
+                    <span className="gvpcew-label">Section</span>
+                    <span className="gvpcew-colon">:</span>
+                    <span className="gvpcew-val">{details.section}</span>
+                  </div>
+
+                  <div className="gvpcew-roll-row">
+                    <span className="gvpcew-roll-label">Roll No</span>
+                    <span className="gvpcew-colon">:</span>
+                    <span className="gvpcew-roll-val">{details.rollNo}</span>
+                  </div>
+                </div>
+
+                {/* Bottom Row inside Body: Barcode on Left, Principal Signature on Right */}
+                <div className="gvpcew-body-bottom-row">
+                  {/* High-density barcode for Roll Number */}
+                  <div className="gvpcew-barcode-container">
+                    <div className="gvpcew-barcode-lines">
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-thick"></div>
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-med"></div>
+                      <div className="b-bar b-thick"></div>
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-med"></div>
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-thick"></div>
+                      <div className="b-bar b-med"></div>
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-thick"></div>
+                      <div className="b-bar b-med"></div>
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-thick"></div>
+                      <div className="b-bar b-thin"></div>
+                      <div className="b-bar b-med"></div>
+                      <div className="b-bar b-thick"></div>
+                    </div>
+                    <span className="gvpcew-barcode-text">*{details.rollNo}*</span>
+                  </div>
+
+                  {/* Official Principal Signature & Seal */}
+                  <div className="gvpcew-signature-box">
+                    <div className="gvpcew-sig-ink">
+                      {/* Elegant Blue Signature Script */}
+                      <svg viewBox="0 0 110 32" className="gvpcew-sig-svg">
+                        <path
+                          d="M 6 22 C 16 6, 26 28, 38 10 C 44 2, 50 24, 58 14 C 68 4, 74 26, 88 8 C 96 18, 102 10, 106 18 M 8 26 L 102 24"
+                          stroke="#004b99"
+                          strokeWidth="2.2"
+                          fill="none"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </div>
+                    <span className="gvpcew-sig-text">PRINCIPAL</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Cyan / Turquoise Footer Bar */}
+            <div className="gvpcew-id-footer">
+              <div className="gvpcew-footer-branch">
+                {details.branchCode || 'CSE'}
+              </div>
+
+              <div className="gvpcew-footer-center">
+                <p className="gvpcew-footer-addr">{details.address}</p>
+                <p className="gvpcew-footer-contact">Contact : {details.collegeContact}</p>
+              </div>
+
+              <div className="gvpcew-footer-college-code">
+                GVPW
+              </div>
             </div>
           </div>
-
-          {/* Card Body Area */}
-          <div className="gvpcew-id-body">
-            {/* Left Student Photo Frame */}
-            <div
-              className="gvpcew-photo-frame"
-              onClick={() => fileInputRef.current?.click()}
-              title="Click to change / upload student photo"
-            >
-              {details.photo ? (
-                <img src={details.photo} alt={details.name} className="gvpcew-photo-img" />
-              ) : (
-                <div className="gvpcew-photo-placeholder">
-                  <User className="w-16 h-16 text-slate-400" />
-                  <span className="text-[10px] text-slate-500 font-bold mt-1">Upload Photo</span>
-                </div>
-              )}
-              <div className="gvpcew-photo-overlay no-print">
-                <Camera className="w-5 h-5 text-white" />
-                <span className="text-[9px] font-bold text-white uppercase mt-0.5">Change</span>
+        ) : (
+          /* BACK SIDE */
+          <div className="gvpcew-physical-card back">
+            <div className="gvpcew-id-header" style={{ padding: '8px 14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', justifyContent: 'space-between' }}>
+                <span style={{ color: '#fef08a', fontWeight: '800', fontSize: '12px' }}>GVPCEW STUDENT ID CARD (TERMS &amp; DETAILS)</span>
+                <span style={{ color: '#fff', fontSize: '10px', fontWeight: 'bold' }}>CODE: 530048</span>
               </div>
             </div>
 
-            {/* Right Student Details with Watermark */}
-            <div className="gvpcew-details-column">
-              {/* Subtle background watermark */}
-              <div className="gvpcew-card-watermark"></div>
-
-              {/* Student Fields */}
-              <div className="gvpcew-field-list">
-                <div className="gvpcew-row">
-                  <span className="gvpcew-label">Name</span>
-                  <span className="gvpcew-colon">:</span>
-                  <span className="gvpcew-val gvpcew-name-val">{details.name}</span>
-                </div>
-
-                <div className="gvpcew-row">
-                  <span className="gvpcew-label">Course</span>
-                  <span className="gvpcew-colon">:</span>
-                  <span className="gvpcew-val">{details.course}</span>
-                </div>
-
-                <div className="gvpcew-row">
-                  <span className="gvpcew-label">Batch</span>
-                  <span className="gvpcew-colon">:</span>
-                  <span className="gvpcew-val">{details.batch}</span>
-                </div>
-
-                <div className="gvpcew-row">
-                  <span className="gvpcew-label">Section</span>
-                  <span className="gvpcew-colon">:</span>
-                  <span className="gvpcew-val">{details.section}</span>
-                </div>
-
-                <div className="gvpcew-roll-row">
-                  <span className="gvpcew-roll-label">Roll No:</span>
-                  <span className="gvpcew-roll-val">{details.rollNo}</span>
-                </div>
+            <div className="gvpcew-id-body" style={{ flexDirection: 'column', gap: '10px', padding: '14px 18px', minHeight: '210px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '12px' }}>
+                <div><strong>Date of Birth:</strong> {details.dob}</div>
+                <div><strong>Blood Group:</strong> <span style={{ color: '#b91c1c', fontWeight: 'bold' }}>{details.bloodGroup}</span></div>
+                <div><strong>Father / Guardian:</strong> {details.fatherName}</div>
+                <div><strong>Emergency Ph:</strong> {details.emergencyContact}</div>
+                <div style={{ gridColumn: 'span 2' }}><strong>Valid Upto:</strong> {details.validTill} (Subject to College Rules)</div>
               </div>
 
-              {/* Principal Signature on the bottom right */}
-              <div className="gvpcew-signature-box">
-                <div className="gvpcew-sig-ink">
-                  <svg viewBox="0 0 100 40" className="gvpcew-sig-svg">
-                    <path
-                      d="M 5 28 C 15 10, 25 35, 35 15 C 45 5, 48 30, 55 18 C 65 8, 70 32, 85 12 C 90 20, 95 10, 98 25 M 10 32 L 95 28"
-                      stroke="#15803d"
-                      strokeWidth="2.5"
-                      fill="none"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div>
-                <span className="gvpcew-sig-text">PRINCIPAL</span>
+              <div style={{ marginTop: '6px', padding: '8px 10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '10px', color: '#475569', lineHeight: '1.4' }}>
+                <strong>INSTRUCTIONS:</strong>
+                <ol style={{ margin: '4px 0 0', paddingLeft: '14px' }}>
+                  <li>This card is non-transferable and must be displayed on campus at all times.</li>
+                  <li>Loss of card must be reported immediately to the Academic Coordinator office.</li>
+                  <li>Card is required for Library book issue, Lab sessions, and Examination Hall entry.</li>
+                </ol>
               </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '6px', borderTop: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: '10px', color: '#64748b' }}>
+                  Web: <strong>www.gvpcew.ac.in</strong>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#087a62', fontWeight: 'bold' }}>
+                  <ShieldCheck className="w-3.5 h-3.5" /> Official Autonomous RFID Badge
+                </div>
+              </div>
+            </div>
+
+            <div className="gvpcew-id-footer">
+              <div className="gvpcew-footer-branch" style={{ fontSize: '14px' }}>GVPCEW</div>
+              <div className="gvpcew-footer-center">
+                <p className="gvpcew-footer-addr">Kommadi, Madhurawada, Visakhapatnam - 530048</p>
+              </div>
+              <div className="gvpcew-footer-college-code">AUTONOMOUS</div>
             </div>
           </div>
-
-          {/* Bottom Cyan / Turquoise Footer Bar */}
-          <div className="gvpcew-id-footer">
-            <div className="gvpcew-footer-branch">
-              {details.branch}
-            </div>
-
-            <div className="gvpcew-footer-center">
-              <p className="gvpcew-footer-addr">{details.address}</p>
-              <p className="gvpcew-footer-contact">Contact : {details.contact}</p>
-            </div>
-
-            <div className="gvpcew-footer-college-code">
-              GVPW
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
