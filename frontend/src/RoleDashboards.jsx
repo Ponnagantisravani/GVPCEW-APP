@@ -390,12 +390,17 @@ function StudentCalendarHighlight({ onNavigate }) {
 // Class & Section Management View (Academic Coordinator)
 function ClassSectionManagement() {
   const sections = [
-    { id: '1', dept: 'Computer Science & Engineering', year: 'II Year', sem: 'II Sem', section: 'A', room: 'R-301 (Academic Block B)', incharge: 'Dr. K. Sravani', students: 68 },
-    { id: '2', dept: 'Computer Science & Engineering', year: 'II Year', sem: 'II Sem', section: 'B', room: 'R-302 (Academic Block B)', incharge: 'Dr. M. Lakshmi', students: 66 },
-    { id: '3', dept: 'CSE - Artificial Intelligence & ML', year: 'II Year', sem: 'II Sem', section: 'A', room: 'R-204 (IT Block)', incharge: 'Dr. S. K. Roy', students: 64 },
-    { id: '4', dept: 'Information Technology', year: 'II Year', sem: 'II Sem', section: 'A', room: 'R-201 (IT Block)', incharge: 'Dr. P. Madhavi', students: 62 },
-    { id: '5', dept: 'Electronics & Communication Engg', year: 'II Year', sem: 'II Sem', section: 'A', room: 'R-105 (ECE Block)', incharge: 'Dr. J. Naresh', students: 70 },
-    { id: '6', dept: 'Electrical & Electronics Engg', year: 'II Year', sem: 'II Sem', section: 'A', room: 'R-102 (EEE Block)', incharge: 'Dr. Y. V. Rao', students: 58 }
+    { id: '1', dept: 'Computer Science & Engineering', year: 'II Year', sem: 'II Sem', section: '1', room: 'R-301 (Academic Block B)', incharge: 'Dr. K. Sravani', students: 68 },
+    { id: '2', dept: 'Computer Science & Engineering', year: 'II Year', sem: 'II Sem', section: '2', room: 'R-302 (Academic Block B)', incharge: 'Dr. M. Lakshmi', students: 66 },
+    { id: '3', dept: 'Computer Science & Engineering', year: 'II Year', sem: 'II Sem', section: '3', room: 'Room L19 (Elective Block)', incharge: 'Dr. K. Sravani', students: 67 },
+    { id: '4', dept: 'Computer Science & Engineering', year: 'II Year', sem: 'II Sem', section: '4', room: 'R-304 (Academic Block B)', incharge: 'Dr. A. Srinivas', students: 65 },
+    { id: '5', dept: 'CSE - Artificial Intelligence & ML', year: 'II Year', sem: 'II Sem', section: '1', room: 'R-201 (IT Block)', incharge: 'Dr. S. K. Roy', students: 64 },
+    { id: '6', dept: 'CSE - Artificial Intelligence & ML', year: 'II Year', sem: 'II Sem', section: '2', room: 'R-202 (IT Block)', incharge: 'Dr. P. Madhavi', students: 62 },
+    { id: '7', dept: 'CSE - Cyber Security', year: 'II Year', sem: 'II Sem', section: '1', room: 'R-205 (IT Block)', incharge: 'Dr. R. V. Sharma', students: 60 },
+    { id: '8', dept: 'Electronics & Communication Engg', year: 'II Year', sem: 'II Sem', section: '1', room: 'R-101 (ECE Block)', incharge: 'Dr. J. Naresh', students: 68 },
+    { id: '9', dept: 'Electronics & Communication Engg', year: 'II Year', sem: 'II Sem', section: '2', room: 'R-102 (ECE Block)', incharge: 'Dr. V. Prasad', students: 66 },
+    { id: '10', dept: 'Electrical & Electronics Engg', year: 'II Year', sem: 'II Sem', section: '1', room: 'R-108 (EEE Block)', incharge: 'Dr. Y. V. Rao', students: 58 },
+    { id: '11', dept: 'Information Technology', year: 'II Year', sem: 'II Sem', section: '1', room: 'R-305 (IT Block)', incharge: 'Dr. P. Vani', students: 62 }
   ];
 
   return (
@@ -446,13 +451,14 @@ function AcademicReports() {
 
       <h3 style={{ fontSize: '14px', fontWeight: '800', margin: '20px 0 10px', color: '#0f172a' }}>Department Performance Summary (II B.Tech II Semester)</h3>
       <Table
-        columns={['Department', 'Enrolled', 'Avg Attendance', 'Mid-I Average', 'Syllabus Covered', 'Status']}
+        columns={['Department', 'Sections', 'Enrolled', 'Avg Attendance', 'Mid-I Average', 'Syllabus Covered', 'Status']}
         rows={[
-          ['Computer Science & Engineering', '134', '91.2%', '86.4%', '80%', <span className="status approved">Active</span>],
-          ['CSE - Artificial Intelligence & ML', '64', '89.8%', '85.2%', '78%', <span className="status approved">Active</span>],
-          ['Information Technology', '62', '88.5%', '84.0%', '76%', <span className="status approved">Active</span>],
-          ['Electronics & Communication Engg', '70', '90.1%', '83.8%', '79%', <span className="status approved">Active</span>],
-          ['Electrical & Electronics Engg', '58', '87.4%', '82.5%', '77%', <span className="status approved">Active</span>]
+          ['Computer Science & Engineering', '4 Sections (Sec 1-4)', '266', '91.2%', '86.4%', '82%', <span className="status approved">Active</span>],
+          ['CSE - Artificial Intelligence & ML', '2 Sections (Sec 1-2)', '126', '89.8%', '85.2%', '80%', <span className="status approved">Active</span>],
+          ['CSE - Cyber Security', '1 Section (Sec 1)', '60', '90.4%', '84.8%', '79%', <span className="status approved">Active</span>],
+          ['Electronics & Communication Engg', '2 Sections (Sec 1-2)', '134', '90.1%', '83.8%', '78%', <span className="status approved">Active</span>],
+          ['Electrical & Electronics Engg', '1 Section (Sec 1)', '58', '87.4%', '82.5%', '77%', <span className="status approved">Active</span>],
+          ['Information Technology', '1 Section (Sec 1)', '62', '88.5%', '84.0%', '76%', <span className="status approved">Active</span>]
         ]}
       />
     </div>
@@ -462,10 +468,10 @@ function AcademicReports() {
 // Student Profile Card Component
 function StudentProfileView({ student, name }) {
   const profile = student?.profile || {
-    full_name: name || 'Sravani Ponnaganti',
-    roll_number: '24B91A0501',
+    full_name: name || 'Ponnaganti Sravani',
+    roll_number: '324103210170',
     department: 'Computer Science & Engineering',
-    section: 'A',
+    section: '3',
     year: 'II Year (2025–26)',
     semester: 'II Semester',
     email: '324103210170.sravani@gvpcew.ac.in',

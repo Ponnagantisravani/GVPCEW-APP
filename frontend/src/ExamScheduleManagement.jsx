@@ -5,11 +5,12 @@ import {
 } from 'lucide-react';
 
 export const BRANCHES = [
-  { key: 'cse', name: 'Computer Science & Engineering', short: 'CSE' },
-  { key: 'it', name: 'Information Technology', short: 'IT' },
-  { key: 'aiml', name: 'CSE - Artificial Intelligence & ML', short: 'CSE-AIML' },
+  { key: 'cse', name: 'Computer Science & Engineering', short: 'CSE (Sec 1-4)' },
+  { key: 'csm', name: 'CSE - Artificial Intelligence & ML', short: 'CSM' },
+  { key: 'csc', name: 'CSE - Cyber Security', short: 'CSC' },
   { key: 'ece', name: 'Electronics & Communication Engineering', short: 'ECE' },
-  { key: 'eee', name: 'Electrical & Electronics Engineering', short: 'EEE' }
+  { key: 'eee', name: 'Electrical & Electronics Engineering', short: 'EEE' },
+  { key: 'it', name: 'Information Technology', short: 'IT' }
 ];
 
 export const INITIAL_EXAM_SCHEDULES = {
@@ -26,141 +27,110 @@ export const INITIAL_EXAM_SCHEDULES = {
         date: '13-04-2026 (Monday)',
         subjects: {
           cse: { title: 'Probability and Statistics', code: '24BM11RC06' },
-          it: { title: 'Probability and Statistics', code: '24BM11RC06' },
-          aiml: { title: 'Probability and Statistics', code: '24BM11RC06' },
+          csm: { title: 'Probability and Statistics', code: '24BM11RC06' },
+          csc: { title: 'Probability and Statistics', code: '24BM11RC06' },
           ece: { title: 'Probability Theory and Random Process', code: '24EC11RC16' },
-          eee: { title: 'Electrical Machines 2', code: '24EE11RC09' }
+          eee: { title: 'Electrical Machines 2', code: '24EE11RC09' },
+          it: { title: 'Probability and Statistics', code: '24BM11RC06' }
         }
       },
       {
         date: '15-04-2026 (Wednesday)',
         subjects: {
           cse: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
-          it: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
-          aiml: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
+          csm: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
+          csc: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
           ece: { title: 'Digital System Design', code: '24EC11RC17' },
-          eee: { title: 'Electrical Measurements', code: '24EE11RC10' }
+          eee: { title: 'Electrical Measurements', code: '24EE11RC10' },
+          it: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' }
         }
       },
       {
         date: '16-04-2026 (Thursday)',
         subjects: {
           cse: { title: 'Professional Ethics and Human Values', code: '24HM11MC01' },
-          it: { title: 'Professional Ethics and Human Values', code: '24HM11MC01' },
-          aiml: { title: 'Environmental Science', code: '24BC11MC01' },
+          csm: { title: 'Environmental Science', code: '24BC11MC01' },
+          csc: { title: 'Professional Ethics and Human Values', code: '24HM11MC01' },
           ece: { title: 'Environmental Science', code: '24BC11MC01' },
-          eee: { title: 'Environmental Science', code: '24BC11MC01' }
+          eee: { title: 'Environmental Science', code: '24BC11MC01' },
+          it: { title: 'Professional Ethics and Human Values', code: '24HM11MC01' }
         }
       },
       {
         date: '20-04-2026 (Monday)',
         subjects: {
           cse: { title: 'Database Management Systems', code: '24CT11RC12' },
-          it: { title: 'Database Management Systems', code: '24CT11RC12' },
-          aiml: { title: 'Data Warehousing & Data Mining', code: '24CT11RC19' },
+          csm: { title: 'Data Warehousing & Data Mining', code: '24CT11RC19' },
+          csc: { title: 'Information Security Fundamentals', code: '24CS11RC01' },
           ece: { title: 'Electromagnetic Field Theory & Transmission Lines', code: '24EC11RC18' },
-          eee: { title: 'EMF Theory', code: '24EE11RC11' }
+          eee: { title: 'EMF Theory', code: '24EE11RC11' },
+          it: { title: 'Database Management Systems', code: '24CT11RC12' }
         }
       },
       {
         date: '22-04-2026 (Wednesday)',
         subjects: {
           cse: { title: 'Formal Languages and Automata Theory', code: '24CT11RC20' },
-          it: { title: 'Formal Languages and Automata Theory', code: '24CT11RC20' },
-          aiml: { title: 'Artificial Intelligence', code: '24AI11RC01' },
-          ece: { title: 'Microprocessors and Microcontrollers', code: '24EC11RC19' },
-          eee: { title: 'Power Systems 1', code: '24EE11RC12' }
+          csm: { title: 'Artificial Intelligence', code: '24AI11RC01' },
+          csc: { title: 'Network Security Protocols', code: '24CS11RC02' },
+          ece: { title: 'Analog Circuits', code: '24EC11RC19' },
+          eee: { title: 'Digital Electronics', code: '24EE11RC12' },
+          it: { title: 'Formal Languages and Automata Theory', code: '24CT11RC20' }
         }
       },
       {
-        date: '27-04-2026 (Monday)',
+        date: '24-04-2026 (Friday)',
         subjects: {
-          cse: { title: 'Managerial Economics', code: '24HM11RC01' },
-          it: { title: 'Managerial Economics', code: '24HM11RC01' },
-          aiml: { title: 'Computer Organization', code: '24CT11RC11' },
-          ece: { title: 'Managerial Economics', code: '24HM11RC01' },
-          eee: { title: 'Managerial Economics', code: '24HM11RC01' }
-        }
-      },
-      {
-        date: '29-04-2026 (Wednesday)',
-        subjects: {
-          cse: { title: 'Data Visualization [Honors]', code: '24CA11HN02' },
-          it: { title: '—', code: '' },
-          aiml: { title: 'Data Visualization [Honors]', code: '24CA11HN02' },
-          ece: { title: 'Artificial Intelligence and ML [Minor]', code: '24AI11MN01' },
-          eee: { title: 'Artificial Intelligence and ML [Minor]', code: '24AI11MN01' }
-        }
-      },
-      {
-        date: '01-05-2026 (Friday)',
-        subjects: {
-          cse: { title: 'Social Media Analytics [Honors]', code: '24CT11HN02' },
-          it: { title: '—', code: '' },
-          aiml: { title: 'Social Media Analytics [Honors]', code: '24CT11HN02' },
-          ece: { title: '—', code: '' },
-          eee: { title: '—', code: '' }
+          cse: { title: 'Managerial Economics and Financial Analysis', code: '24HM11RC01' },
+          csm: { title: 'Managerial Economics and Financial Analysis', code: '24HM11RC01' },
+          csc: { title: 'Managerial Economics and Financial Analysis', code: '24HM11RC01' },
+          ece: { title: 'Managerial Economics and Financial Analysis', code: '24HM11RC01' },
+          eee: { title: 'Managerial Economics and Financial Analysis', code: '24HM11RC01' },
+          it: { title: 'Managerial Economics and Financial Analysis', code: '24HM11RC01' }
         }
       }
     ]
   },
-  mid1_sep_2025: {
-    id: 'mid1_sep_2025',
+  mid1_feb_2026: {
+    id: 'mid1_feb_2026',
     category: 'mid1',
-    typeLabel: 'Mid-I Internal Examinations',
-    title: 'TIME TABLE OF II B.TECH. II SEMESTER I MID-TERM EXAMINATIONS [R24] SEPTEMBER 2025',
+    typeLabel: 'Mid-I Internal Examination',
+    title: 'TIME TABLE OF II B.TECH. II SEMESTER MID-I INTERNAL EXAMINATIONS [R24] FEBRUARY 2026',
     batch: '[2024 Admitted Batch]',
-    timings: '10:00 AM – 11:30 AM (FN) & 02:00 PM – 03:30 PM (AN)',
+    timings: '10:00 AM – 12:00 PM (Morning Session)',
     status: 'Published',
     rows: [
       {
-        date: '08-09-2025 (Mon FN)',
+        date: '23-02-2026 (Monday)',
         subjects: {
-          cse: { title: 'Probability & Statistics', code: '24BM11RC06' },
-          it: { title: 'Probability & Statistics', code: '24BM11RC06' },
-          aiml: { title: 'Probability & Statistics', code: '24BM11RC06' },
-          ece: { title: 'Probability Theory', code: '24EC11RC16' },
-          eee: { title: 'Electrical Machines 2', code: '24EE11RC09' }
+          cse: { title: 'Probability and Statistics', code: '24BM11RC06' },
+          csm: { title: 'Probability and Statistics', code: '24BM11RC06' },
+          csc: { title: 'Probability and Statistics', code: '24BM11RC06' },
+          ece: { title: 'Probability Theory and Random Process', code: '24EC11RC16' },
+          eee: { title: 'Electrical Machines 2', code: '24EE11RC09' },
+          it: { title: 'Probability and Statistics', code: '24BM11RC06' }
         }
       },
       {
-        date: '08-09-2025 (Mon AN)',
+        date: '24-02-2026 (Tuesday)',
         subjects: {
-          cse: { title: 'Design & Analysis of Algorithms', code: '24CT11RC18' },
-          it: { title: 'Design & Analysis of Algorithms', code: '24CT11RC18' },
-          aiml: { title: 'Design & Analysis of Algorithms', code: '24CT11RC18' },
+          cse: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
+          csm: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
+          csc: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' },
           ece: { title: 'Digital System Design', code: '24EC11RC17' },
-          eee: { title: 'Electrical Measurements', code: '24EE11RC10' }
+          eee: { title: 'Electrical Measurements', code: '24EE11RC10' },
+          it: { title: 'Design and Analysis of Algorithms', code: '24CT11RC18' }
         }
       },
       {
-        date: '09-09-2025 (Tue FN)',
+        date: '25-02-2026 (Wednesday)',
         subjects: {
           cse: { title: 'Database Management Systems', code: '24CT11RC12' },
-          it: { title: 'Database Management Systems', code: '24CT11RC12' },
-          aiml: { title: 'Data Warehousing & Mining', code: '24CT11RC19' },
-          ece: { title: 'EMF Theory', code: '24EC11RC18' },
-          eee: { title: 'EMF Theory', code: '24EE11RC11' }
-        }
-      },
-      {
-        date: '09-09-2025 (Tue AN)',
-        subjects: {
-          cse: { title: 'Formal Languages & Automata', code: '24CT11RC20' },
-          it: { title: 'Formal Languages & Automata', code: '24CT11RC20' },
-          aiml: { title: 'Artificial Intelligence', code: '24AI11RC01' },
-          ece: { title: 'Microprocessors & Microcontrollers', code: '24EC11RC19' },
-          eee: { title: 'Power Systems 1', code: '24EE11RC12' }
-        }
-      },
-      {
-        date: '10-09-2025 (Wed FN)',
-        subjects: {
-          cse: { title: 'Managerial Economics', code: '24HM11RC01' },
-          it: { title: 'Managerial Economics', code: '24HM11RC01' },
-          aiml: { title: 'Computer Organization', code: '24CT11RC11' },
-          ece: { title: 'Managerial Economics', code: '24HM11RC01' },
-          eee: { title: 'Managerial Economics', code: '24HM11RC01' }
+          csm: { title: 'Data Warehousing & Data Mining', code: '24CT11RC19' },
+          csc: { title: 'Information Security Fundamentals', code: '24CS11RC01' },
+          ece: { title: 'Electromagnetic Field Theory & Transmission Lines', code: '24EC11RC18' },
+          eee: { title: 'EMF Theory', code: '24EE11RC11' },
+          it: { title: 'Database Management Systems', code: '24CT11RC12' }
         }
       }
     ]

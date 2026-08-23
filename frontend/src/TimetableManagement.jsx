@@ -14,12 +14,17 @@ export const TIMETABLE_IMAGE_KEY = 'gvpcew_timetable_images_v3';
 export const TIMETABLE_STATUS_KEY = 'gvpcew_timetable_published_status_v3';
 
 export const BRANCHES = [
-  { key: 'cse_a', name: 'Computer Science & Engineering (Sec A)', short: 'CSE - A', dept: 'CSE', year: 'II Year', sem: 'II Sem', section: 'A' },
-  { key: 'cse_b', name: 'Computer Science & Engineering (Sec B)', short: 'CSE - B', dept: 'CSE', year: 'II Year', sem: 'II Sem', section: 'B' },
-  { key: 'aiml', name: 'CSE - Artificial Intelligence & ML', short: 'CSE - AIML', dept: 'AIML', year: 'II Year', sem: 'II Sem', section: 'A' },
-  { key: 'it', name: 'Information Technology', short: 'IT', dept: 'IT', year: 'II Year', sem: 'II Sem', section: 'A' },
-  { key: 'ece', name: 'Electronics & Communication Engg', short: 'ECE', dept: 'ECE', year: 'II Year', sem: 'II Sem', section: 'A' },
-  { key: 'eee', name: 'Electrical & Electronics Engg', short: 'EEE', dept: 'EEE', year: 'II Year', sem: 'II Sem', section: 'A' }
+  { key: 'cse_sec1', name: 'Computer Science & Engineering (Sec 1)', short: 'CSE - 1', dept: 'CSE', year: 'II Year', sem: 'II Sem', section: '1', room: 'Room 301' },
+  { key: 'cse_sec2', name: 'Computer Science & Engineering (Sec 2)', short: 'CSE - 2', dept: 'CSE', year: 'II Year', sem: 'II Sem', section: '2', room: 'Room 302' },
+  { key: 'cse_sec3', name: 'Computer Science & Engineering (Sec 3)', short: 'CSE - 3', dept: 'CSE', year: 'II Year', sem: 'II Sem', section: '3', room: 'Room L19' },
+  { key: 'cse_sec4', name: 'Computer Science & Engineering (Sec 4)', short: 'CSE - 4', dept: 'CSE', year: 'II Year', sem: 'II Sem', section: '4', room: 'Room 304' },
+  { key: 'csm_sec1', name: 'CSE - Artificial Intelligence & ML (Sec 1)', short: 'CSM - 1', dept: 'CSM', year: 'II Year', sem: 'II Sem', section: '1', room: 'Room 201' },
+  { key: 'csm_sec2', name: 'CSE - Artificial Intelligence & ML (Sec 2)', short: 'CSM - 2', dept: 'CSM', year: 'II Year', sem: 'II Sem', section: '2', room: 'Room 202' },
+  { key: 'csc_sec1', name: 'CSE - Cyber Security (Sec 1)', short: 'CSC - 1', dept: 'CSC', year: 'II Year', sem: 'II Sem', section: '1', room: 'Room 205' },
+  { key: 'ece_sec1', name: 'Electronics & Communication Engg (Sec 1)', short: 'ECE - 1', dept: 'ECE', year: 'II Year', sem: 'II Sem', section: '1', room: 'Room 101' },
+  { key: 'ece_sec2', name: 'Electronics & Communication Engg (Sec 2)', short: 'ECE - 2', dept: 'ECE', year: 'II Year', sem: 'II Sem', section: '2', room: 'Room 102' },
+  { key: 'eee_sec1', name: 'Electrical & Electronics Engg (Sec 1)', short: 'EEE - 1', dept: 'EEE', year: 'II Year', sem: 'II Sem', section: '1', room: 'Room 108' },
+  { key: 'it_sec1', name: 'Information Technology (Sec 1)', short: 'IT - 1', dept: 'IT', year: 'II Year', sem: 'II Sem', section: '1', room: 'Room 305' }
 ];
 
 export const STANDARD_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -45,153 +50,92 @@ export const SLOT_TYPES = {
   remedial: { label: 'Remedial / Special', color: '#fee2e2', textColor: '#991b1b', border: '#fca5a5' }
 };
 
-export const INITIAL_TIMETABLES = {
-  cse_a: {
-    id: 'cse_a',
-    title: 'II B.Tech II Semester (2025–26) — Department of Computer Science & Engineering [Section A]',
-    academicYear: '2025–2026',
-    classroom: 'Room 301 (Academic Block B)',
-    incharge: 'Dr. K. Sravani, Associate Professor',
-    status: 'Published',
-    updatedAt: '2026-08-17',
-    days: STANDARD_DAYS,
-    periods: STANDARD_PERIODS,
-    grid: {
-      Monday: {
-        p1: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-301', type: 'theory' },
-        p2: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-301', type: 'theory' },
-        p3: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-301', type: 'theory' },
-        p4: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room: 'R-301', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran / Dr. M. Lakshmi', room: 'Lab 4 (CS Block)', type: 'lab' },
-        p6: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran / Dr. M. Lakshmi', room: 'Lab 4 (CS Block)', type: 'lab' },
-        p7: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran / Dr. M. Lakshmi', room: 'Lab 4 (CS Block)', type: 'lab' }
-      },
-      Tuesday: {
-        p1: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-301', type: 'theory' },
-        p2: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-301', type: 'theory' },
-        p3: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-301', type: 'theory' },
-        p4: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room: 'R-301', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi / Mrs. P. Vani', room: 'Lab 2 (CS Block)', type: 'lab' },
-        p6: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi / Mrs. P. Vani', room: 'Lab 2 (CS Block)', type: 'lab' },
-        p7: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi / Mrs. P. Vani', room: 'Lab 2 (CS Block)', type: 'lab' }
-      },
-      Wednesday: {
-        p1: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-301', type: 'theory' },
-        p2: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-301', type: 'theory' },
-        p3: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-301', type: 'theory' },
-        p4: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-301', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Data Visualization [Honors]', code: '24CA11HN02', faculty: 'Dr. K. Sravani', room: 'R-301', type: 'elective' },
-        p6: { subject: 'Library / Student Mentoring Session', code: 'MENTOR-02', faculty: 'Dr. K. Sravani / Dr. V. Prasad', room: 'Library Hall', type: 'library' },
-        p7: { subject: 'Technical Skill Course (Python Advanced)', code: '24SC11SK04', faculty: 'Trainer Mr. G. Rajesh', room: 'Lab 1', type: 'tutorial' }
-      },
-      Thursday: {
-        p1: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-301', type: 'theory' },
-        p2: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-301', type: 'theory' },
-        p3: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-301', type: 'theory' },
-        p4: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room: 'R-301', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' },
-        p6: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' },
-        p7: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' }
-      },
-      Friday: {
-        p1: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-301', type: 'theory' },
-        p2: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-301', type: 'theory' },
-        p3: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-301', type: 'theory' },
-        p4: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-301', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Mini Project & Review Lab', code: '24CT11PR01', faculty: 'Dr. K. Sravani', room: 'Project Lab', type: 'lab' },
-        p6: { subject: 'Mini Project & Review Lab', code: '24CT11PR01', faculty: 'Dr. K. Sravani', room: 'Project Lab', type: 'lab' },
-        p7: { subject: 'Social Media Analytics [Honors]', code: '24CT11HN02', faculty: 'Dr. A. Srinivas', room: 'R-301', type: 'elective' }
-      },
-      Saturday: {
-        p1: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room: 'R-301', type: 'theory' },
-        p2: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room: 'R-301', type: 'theory' },
-        p3: { subject: 'DAA Tutorial & Doubt Clearing', code: '24CT11RC18-T', faculty: 'Dr. M. Lakshmi', room: 'R-301', type: 'tutorial' },
-        p4: { subject: 'Sports & Student Club Activities', code: 'ECA-02', faculty: 'Physical Director', room: 'Sports Ground', type: 'library' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Technical Seminar & Presentation', code: '24CT11SM01', faculty: 'Dr. K. Sravani', room: 'Seminar Hall 1', type: 'tutorial' },
-        p6: { subject: 'Remedial / Placement Training', code: 'CRT-02', faculty: 'Training Officer', room: 'R-301', type: 'elective' },
-        p7: { subject: 'Weekly Faculty Review & Feedback', code: 'REV-02', faculty: 'Class Incharge Dr. Sravani', room: 'R-301', type: 'library' }
-      }
-    }
-  },
-  cse_b: {
-    id: 'cse_b',
-    title: 'II B.Tech II Semester (2025–26) — Department of Computer Science & Engineering [Section B]',
-    academicYear: '2025–2026',
-    classroom: 'Room 302 (Academic Block B)',
-    incharge: 'Dr. M. Lakshmi, Professor',
-    status: 'Published',
-    updatedAt: '2026-08-17',
-    days: STANDARD_DAYS,
-    periods: STANDARD_PERIODS,
-    grid: {
-      Monday: {
-        p1: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-302', type: 'theory' },
-        p2: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-302', type: 'theory' },
-        p3: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-302', type: 'theory' },
-        p4: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-302', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi', room: 'Lab 2', type: 'lab' },
-        p6: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi', room: 'Lab 2', type: 'lab' },
-        p7: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi', room: 'Lab 2', type: 'lab' }
-      },
-      Tuesday: {
-        p1: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-302', type: 'theory' },
-        p2: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-302', type: 'theory' },
-        p3: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room: 'R-302', type: 'theory' },
-        p4: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-302', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran', room: 'Lab 4', type: 'lab' },
-        p6: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran', room: 'Lab 4', type: 'lab' },
-        p7: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran', room: 'Lab 4', type: 'lab' }
-      },
-      Wednesday: {
-        p1: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-302', type: 'theory' },
-        p2: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-302', type: 'theory' },
-        p3: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-302', type: 'theory' },
-        p4: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-302', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' },
-        p6: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' },
-        p7: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' }
-      },
-      Thursday: {
-        p1: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-302', type: 'theory' },
-        p2: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room: 'R-302', type: 'theory' },
-        p3: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room: 'R-302', type: 'theory' },
-        p4: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room: 'R-302', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Data Visualization [Honors]', code: '24CA11HN02', faculty: 'Dr. K. Sravani', room: 'R-302', type: 'elective' },
-        p6: { subject: 'Library / Student Mentoring', code: 'MENTOR-02', faculty: 'Dr. M. Lakshmi', room: 'Library', type: 'library' },
-        p7: { subject: 'Technical Skill Course (Python Advanced)', code: '24SC11SK04', faculty: 'Trainer Mr. G. Rajesh', room: 'Lab 1', type: 'tutorial' }
-      },
-      Friday: {
-        p1: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room: 'R-302', type: 'theory' },
-        p2: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-302', type: 'theory' },
-        p3: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room: 'R-302', type: 'theory' },
-        p4: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room: 'R-302', type: 'theory' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Mini Project & Review Lab', code: '24CT11PR01', faculty: 'Dr. M. Lakshmi', room: 'Project Lab', type: 'lab' },
-        p6: { subject: 'Mini Project & Review Lab', code: '24CT11PR01', faculty: 'Dr. M. Lakshmi', room: 'Project Lab', type: 'lab' },
-        p7: { subject: 'Social Media Analytics [Honors]', code: '24CT11HN02', faculty: 'Dr. A. Srinivas', room: 'R-302', type: 'elective' }
-      },
-      Saturday: {
-        p1: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room: 'R-302', type: 'theory' },
-        p2: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room: 'R-302', type: 'theory' },
-        p3: { subject: 'DBMS Doubt Clearing Tutorial', code: '24CT11RC12-T', faculty: 'Prof. R. Kiran', room: 'R-302', type: 'tutorial' },
-        p4: { subject: 'Sports & Student Club Activities', code: 'ECA-02', faculty: 'Physical Director', room: 'Sports Ground', type: 'library' },
-        lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
-        p5: { subject: 'Technical Seminar & Presentation', code: '24CT11SM01', faculty: 'Dr. M. Lakshmi', room: 'Seminar Hall 1', type: 'tutorial' },
-        p6: { subject: 'Remedial / Placement Training', code: 'CRT-02', faculty: 'Training Officer', room: 'R-302', type: 'elective' },
-        p7: { subject: 'Weekly Faculty Review & Feedback', code: 'REV-02', faculty: 'Class Incharge Dr. Lakshmi', room: 'R-302', type: 'library' }
-      }
+const createScheduleGrid = (branchKey, room, inchargeName, isSec3 = false) => ({
+  id: branchKey,
+  title: `II B.Tech II Semester (2025–26) — ${BRANCHES.find(b => b.key === branchKey)?.name || 'Branch'}`,
+  academicYear: '2025–2026',
+  classroom: `${room} (Academic Block)`,
+  incharge: inchargeName,
+  status: 'Published',
+  updatedAt: '2026-08-17',
+  days: STANDARD_DAYS,
+  periods: STANDARD_PERIODS,
+  grid: {
+    Monday: {
+      p1: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room, type: 'theory' },
+      p2: { subject: isSec3 ? 'Information Retrieved System (IRS)' : 'Design & Analysis of Algorithms', code: isSec3 ? '24CT11OE01' : '24CT11RC18', faculty: 'Dr. M. Lakshmi', room, type: isSec3 ? 'elective' : 'theory' },
+      p3: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room, type: 'theory' },
+      p4: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room, type: 'theory' },
+      lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
+      p5: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran / Dr. M. Lakshmi', room: 'Lab 4 (CS Block)', type: 'lab' },
+      p6: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran / Dr. M. Lakshmi', room: 'Lab 4 (CS Block)', type: 'lab' },
+      p7: { subject: 'DBMS Lab (Batch 1) / OS Lab (Batch 2)', code: '24CT11LC08', faculty: 'Prof. R. Kiran / Dr. M. Lakshmi', room: 'Lab 4 (CS Block)', type: 'lab' }
+    },
+    Tuesday: {
+      p1: { subject: isSec3 ? 'Microprocessors & Micro controllers' : 'Design & Analysis of Algorithms', code: isSec3 ? '24EC11OE02' : '24CT11RC18', faculty: 'Dr. J. Naresh', room, type: 'theory' },
+      p2: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room, type: 'theory' },
+      p3: { subject: isSec3 ? 'Information Retrieved System (IRS)' : 'Formal Languages & Automata', code: isSec3 ? '24CT11OE01' : '24CT11RC20', faculty: 'Dr. M. Lakshmi', room, type: 'theory' },
+      p4: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room, type: 'theory' },
+      lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
+      p5: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi / Mrs. P. Vani', room: 'Lab 2 (CS Block)', type: 'lab' },
+      p6: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi / Mrs. P. Vani', room: 'Lab 2 (CS Block)', type: 'lab' },
+      p7: { subject: 'DAA Laboratory', code: '24CT11LC09', faculty: 'Dr. M. Lakshmi / Mrs. P. Vani', room: 'Lab 2 (CS Block)', type: 'lab' }
+    },
+    Wednesday: {
+      p1: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room, type: 'theory' },
+      p2: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room, type: 'theory' },
+      p3: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room, type: 'theory' },
+      p4: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room, type: 'theory' },
+      lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
+      p5: { subject: isSec3 ? 'IRS Open Elective Lab / Tutorial' : 'Data Visualization [Honors]', code: isSec3 ? '24CT11OE01-L' : '24CA11HN02', faculty: 'Dr. K. Sravani', room, type: 'elective' },
+      p6: { subject: 'Library / Student Mentoring Session', code: 'MENTOR-02', faculty: 'Dr. K. Sravani / Dr. V. Prasad', room: 'Library Hall', type: 'library' },
+      p7: { subject: 'Technical Skill Course (Python Advanced)', code: '24SC11SK04', faculty: 'Trainer Mr. G. Rajesh', room: 'Lab 1', type: 'tutorial' }
+    },
+    Thursday: {
+      p1: { subject: isSec3 ? 'Information Retrieved System (IRS)' : 'Database Management Systems', code: isSec3 ? '24CT11OE01' : '24CT11RC12', faculty: 'Dr. M. Lakshmi', room, type: 'theory' },
+      p2: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room, type: 'theory' },
+      p3: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room, type: 'theory' },
+      p4: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room, type: 'theory' },
+      lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
+      p5: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' },
+      p6: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' },
+      p7: { subject: 'Web Technologies Lab', code: '24CT11LC10', faculty: 'Mrs. P. Vani', room: 'Lab 3', type: 'lab' }
+    },
+    Friday: {
+      p1: { subject: 'Design & Analysis of Algorithms', code: '24CT11RC18', faculty: 'Dr. M. Lakshmi', room, type: 'theory' },
+      p2: { subject: 'Database Management Systems', code: '24CT11RC12', faculty: 'Prof. R. Kiran', room, type: 'theory' },
+      p3: { subject: 'Formal Languages & Automata', code: '24CT11RC20', faculty: 'Dr. A. Srinivas', room, type: 'theory' },
+      p4: { subject: 'Probability & Statistics', code: '24BM11RC06', faculty: 'Dr. V. Prasad', room, type: 'theory' },
+      lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
+      p5: { subject: 'Mini Project & Review Lab', code: '24CT11PR01', faculty: 'Dr. K. Sravani', room: 'Project Lab', type: 'lab' },
+      p6: { subject: 'Mini Project & Review Lab', code: '24CT11PR01', faculty: 'Dr. K. Sravani', room: 'Project Lab', type: 'lab' },
+      p7: { subject: 'Social Media Analytics [Honors]', code: '24CT11HN02', faculty: 'Dr. A. Srinivas', room, type: 'elective' }
+    },
+    Saturday: {
+      p1: { subject: 'Managerial Economics', code: '24HM11RC01', faculty: 'Dr. T. Ramesh', room, type: 'theory' },
+      p2: { subject: 'Prof. Ethics & Human Values', code: '24HM11MC01', faculty: 'Mrs. S. Bhavani', room, type: 'theory' },
+      p3: { subject: 'DAA Tutorial & Doubt Clearing', code: '24CT11RC18-T', faculty: 'Dr. M. Lakshmi', room, type: 'tutorial' },
+      p4: { subject: 'Sports & Student Club Activities', code: 'ECA-02', faculty: 'Physical Director', room: 'Sports Ground', type: 'library' },
+      lunch: { subject: 'LUNCH BREAK', code: '', faculty: '', room: 'Campus Cafeteria', type: 'break' },
+      p5: { subject: 'Technical Seminar & Presentation', code: '24CT11SM01', faculty: 'Dr. K. Sravani', room: 'Seminar Hall 1', type: 'tutorial' },
+      p6: { subject: 'Remedial / Placement Training', code: 'CRT-02', faculty: 'Training Officer', room, type: 'elective' },
+      p7: { subject: 'Weekly Faculty Review & Feedback', code: 'REV-02', faculty: inchargeName, room, type: 'library' }
     }
   }
+});
+
+export const INITIAL_TIMETABLES = {
+  cse_sec1: createScheduleGrid('cse_sec1', 'Room 301', 'Dr. K. Sravani, Associate Professor'),
+  cse_sec2: createScheduleGrid('cse_sec2', 'Room 302', 'Dr. M. Lakshmi, Professor'),
+  cse_sec3: createScheduleGrid('cse_sec3', 'Room L19', 'Dr. K. Sravani / Dr. M. Lakshmi', true),
+  cse_sec4: createScheduleGrid('cse_sec4', 'Room 304', 'Dr. A. Srinivas, Associate Professor'),
+  csm_sec1: createScheduleGrid('csm_sec1', 'Room 201', 'Dr. S. K. Roy, Associate Professor'),
+  csm_sec2: createScheduleGrid('csm_sec2', 'Room 202', 'Dr. P. Madhavi, Associate Professor'),
+  csc_sec1: createScheduleGrid('csc_sec1', 'Room 205', 'Dr. R. V. Sharma, Associate Professor'),
+  ece_sec1: createScheduleGrid('ece_sec1', 'Room 101', 'Dr. J. Naresh, Associate Professor'),
+  ece_sec2: createScheduleGrid('ece_sec2', 'Room 102', 'Dr. V. Prasad, Professor'),
+  eee_sec1: createScheduleGrid('eee_sec1', 'Room 108', 'Dr. Y. V. Rao, Professor'),
+  it_sec1: createScheduleGrid('it_sec1', 'Room 305', 'Dr. P. Vani, Assistant Professor')
 };
 
 export function TimetableManagement({ role = 'academic_coordinator', rows = [], reload, student }) {
@@ -201,7 +145,7 @@ export function TimetableManagement({ role = 'academic_coordinator', rows = [], 
   const [timetables, setTimetables] = useState(() => {
     try {
       const saved = localStorage.getItem(TIMETABLE_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) return { ...INITIAL_TIMETABLES, ...JSON.parse(saved) };
     } catch {}
     return INITIAL_TIMETABLES;
   });
@@ -219,13 +163,21 @@ export function TimetableManagement({ role = 'academic_coordinator', rows = [], 
   const [selectedBranch, setSelectedBranch] = useState(() => {
     if (student?.profile?.department) {
       const dept = student.profile.department.toLowerCase();
-      if (dept.includes('aiml')) return 'aiml';
-      if (dept.includes('it')) return 'it';
-      if (dept.includes('ece')) return 'ece';
-      if (dept.includes('eee')) return 'eee';
-      if (dept.includes('cse')) return student?.profile?.section === 'B' ? 'cse_b' : 'cse_a';
+      const sec = String(student?.profile?.section || '3');
+      if (dept.includes('aiml') || dept.includes('csm')) return sec.includes('2') ? 'csm_sec2' : 'csm_sec1';
+      if (dept.includes('cyber') || dept.includes('csc')) return 'csc_sec1';
+      if (dept.includes('ece')) return sec.includes('2') ? 'ece_sec2' : 'ece_sec1';
+      if (dept.includes('eee')) return 'eee_sec1';
+      if (dept.includes('it')) return 'it_sec1';
+      if (dept.includes('cse')) {
+        if (sec.includes('1') || sec.toLowerCase() === 'a') return 'cse_sec1';
+        if (sec.includes('2') || sec.toLowerCase() === 'b') return 'cse_sec2';
+        if (sec.includes('3') || sec.toLowerCase() === 'c') return 'cse_sec3';
+        if (sec.includes('4') || sec.toLowerCase() === 'd') return 'cse_sec4';
+        return 'cse_sec3';
+      }
     }
-    return 'cse_a';
+    return 'cse_sec3';
   });
 
   // Active View Tab: 'grid', 'image', 'conflicts'

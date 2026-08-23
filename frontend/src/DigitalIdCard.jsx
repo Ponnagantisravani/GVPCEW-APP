@@ -165,7 +165,27 @@ export function DigitalIdCard({ student }) {
             </div>
             <div>
               <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Branch / Department</label>
-              <input type="text" className="id-form-input" value={details.branch} onChange={e => handleChange('branch', e.target.value)} />
+              <select
+                className="id-form-input"
+                value={details.branch}
+                onChange={e => {
+                  const b = e.target.value;
+                  let code = 'CSE';
+                  if (b.includes('Artificial') || b.includes('CSM')) code = 'CSM';
+                  else if (b.includes('Cyber') || b.includes('CSC')) code = 'CSC';
+                  else if (b.includes('Electronics') || b.includes('ECE')) code = 'ECE';
+                  else if (b.includes('Electrical') || b.includes('EEE')) code = 'EEE';
+                  else if (b.includes('Information') || b.includes('IT')) code = 'IT';
+                  setDetails(prev => ({ ...prev, branch: b, branchCode: code }));
+                }}
+              >
+                <option value="Computer Science & Engineering">Computer Science & Engineering (CSE)</option>
+                <option value="CSE - Artificial Intelligence & ML">CSE - Artificial Intelligence & ML (CSM)</option>
+                <option value="CSE - Cyber Security">CSE - Cyber Security (CSC)</option>
+                <option value="Electronics & Communication Engineering">Electronics & Communication Engineering (ECE)</option>
+                <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering (EEE)</option>
+                <option value="Information Technology">Information Technology (IT)</option>
+              </select>
             </div>
             <div>
               <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Branch Code (e.g. CSE)</label>
@@ -177,7 +197,12 @@ export function DigitalIdCard({ student }) {
             </div>
             <div>
               <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Section</label>
-              <input type="text" className="id-form-input" value={details.section} onChange={e => handleChange('section', e.target.value)} />
+              <select className="id-form-input" value={details.section} onChange={e => handleChange('section', e.target.value)}>
+                <option value="1">Section 1</option>
+                <option value="2">Section 2</option>
+                <option value="3">Section 3</option>
+                <option value="4">Section 4</option>
+              </select>
             </div>
             <div>
               <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>Batch</label>

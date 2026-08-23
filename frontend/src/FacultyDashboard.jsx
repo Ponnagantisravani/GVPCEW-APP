@@ -141,6 +141,7 @@ function getStudentAugustAttendance(student, index) {
 
 export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overview', onNavigate }) {
   // Filters & State
+  const [selectedSection, setSelectedSection] = useState('cse_3'); // 'cse_1', 'cse_2', 'cse_3', 'cse_4', 'csm_1', 'csm_2', 'csc_1', 'ece_1', 'ece_2', 'eee_1', 'it_1'
   const [filterMode, setFilterMode] = useState('all'); // 'all', 'irs', 'mpmc', 'subset_170'
   const [activeCourse, setActiveCourse] = useState('IRS'); // 'IRS', 'MPMC', 'DAA'
   const [showAllAssignments, setShowAllAssignments] = useState(false);
@@ -150,6 +151,23 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
     setNotice(msg);
     setTimeout(() => setNotice(prev => (prev === msg ? '' : prev)), 3500);
   };
+
+  // Section configurations
+  const sectionMeta = {
+    cse_1: { name: 'CSE — Section 1', room: 'R-301', title: 'Design & Analysis of Algorithms', code: '24CT11RC18' },
+    cse_2: { name: 'CSE — Section 2', room: 'R-302', title: 'Design & Analysis of Algorithms', code: '24CT11RC18' },
+    cse_3: { name: 'CSE — Section 3', room: 'L19', title: 'Information Retrieved System (IRS)', code: '24CT11OE01' },
+    cse_4: { name: 'CSE — Section 4', room: 'R-304', title: 'Formal Languages & Automata', code: '24CT11RC20' },
+    csm_1: { name: 'CSM (AI & ML) — Section 1', room: 'R-201', title: 'Artificial Intelligence', code: '24AI11RC01' },
+    csm_2: { name: 'CSM (AI & ML) — Section 2', room: 'R-202', title: 'Artificial Intelligence', code: '24AI11RC01' },
+    csc_1: { name: 'CSC (Cyber Security) — Section 1', room: 'R-205', title: 'Information Security Fundamentals', code: '24CS11RC01' },
+    ece_1: { name: 'ECE — Section 1', room: 'R-101', title: 'Digital System Design', code: '24EC11RC17' },
+    ece_2: { name: 'ECE — Section 2', room: 'R-102', title: 'Digital System Design', code: '24EC11RC17' },
+    eee_1: { name: 'EEE — Section 1', room: 'R-108', title: 'Electrical Machines 2', code: '24EE11RC09' },
+    it_1: { name: 'IT — Section 1', room: 'R-305', title: 'Database Management Systems', code: '24CT11RC12' }
+  };
+
+  const curSec = sectionMeta[selectedSection] || sectionMeta.cse_3;
 
   // Filtered Student List based on chosen view
   const displayStudents = useMemo(() => {
@@ -178,11 +196,25 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
       <div style={{ background: '#ffffff', padding: '14px 20px', borderRadius: '10px', border: '1px solid #dce6f4', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-            Academic Section:
+            Select Class Section:
           </span>
-          <span style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '800' }}>
-            CSE • Section: 3 (Room: L19)
-          </span>
+          <select
+            value={selectedSection}
+            onChange={e => setSelectedSection(e.target.value)}
+            style={{ padding: '6px 12px', borderRadius: '6px', border: '1.5px solid #087a62', background: '#f0fdf4', color: '#166534', fontWeight: '800', fontSize: '12.5px', cursor: 'pointer' }}
+          >
+            <option value="cse_1">CSE — Section 1 (Room: R-301)</option>
+            <option value="cse_2">CSE — Section 2 (Room: R-302)</option>
+            <option value="cse_3">CSE — Section 3 (Room: L19 • IRS / MPMC Elective)</option>
+            <option value="cse_4">CSE — Section 4 (Room: R-304)</option>
+            <option value="csm_1">CSM (AI & ML) — Section 1 (Room: R-201)</option>
+            <option value="csm_2">CSM (AI & ML) — Section 2 (Room: R-202)</option>
+            <option value="csc_1">CSC (Cyber Security) — Section 1 (Room: R-205)</option>
+            <option value="ece_1">ECE — Section 1 (Room: R-101)</option>
+            <option value="ece_2">ECE — Section 2 (Room: R-102)</option>
+            <option value="eee_1">EEE — Section 1 (Room: R-108)</option>
+            <option value="it_1">IT — Section 1 (Room: R-305)</option>
+          </select>
           <span style={{ background: '#eff6ff', color: '#1e40af', border: '1px solid #bfdbfe', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '800' }}>
             3-1 Semester 2026-27 Odd Sem
           </span>
@@ -195,7 +227,7 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
             onClick={() => setFilterMode('all')}
             style={{ padding: '5px 12px', borderRadius: '6px', fontSize: '11.5px', fontWeight: '700', border: '1px solid', cursor: 'pointer', background: filterMode === 'all' ? '#087a62' : '#ffffff', color: filterMode === 'all' ? '#ffffff' : '#334155', borderColor: filterMode === 'all' ? '#087a62' : '#cbd5e1' }}
           >
-            All Sec 3 Students ({CSE_SECTION_3_STUDENTS.length})
+            All Students ({CSE_SECTION_3_STUDENTS.length})
           </button>
           <button
             type="button"
@@ -233,12 +265,12 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
                 <BookMarked className="w-4 h-4" />
               </div>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#087a62', letterSpacing: '0.2px' }}>
-                Assignment Marks - IRS | Sec: 3
+                Assignment Marks - {curSec.title} | {curSec.name}
               </h3>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '11.5px', color: '#64748b' }}>Room: <strong>L19</strong></span>
+              <span style={{ fontSize: '11.5px', color: '#64748b' }}>Room: <strong>{curSec.room}</strong></span>
             </div>
           </div>
 
@@ -306,7 +338,7 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
                 <Calendar className="w-4 h-4" />
               </div>
               <h3 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#087a62', letterSpacing: '0.2px' }}>
-                Monthly Attendance - Information Retrieved System (IRS) | Sec: 3 | Room: L19 | August 2026
+                Monthly Attendance - {curSec.title} | {curSec.name} | Room: {curSec.room} | August 2026
               </h3>
             </div>
 
