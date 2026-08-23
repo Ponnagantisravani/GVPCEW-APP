@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" role="img" aria-labelledby="title desc">
+  <title id="title">GVPCEW emblem</title>
+  <desc id="desc">Stylized crest for Gayatri Vidya Parishad College of Engineering for Women.</desc>
+  <defs>
+    <radialGradient id="goldGlow" cx="50%" cy="44%" r="62%">
+      <stop offset="0%" stop-color="#fff7d6"/>
+      <stop offset="60%" stop-color="#f5cf62"/>
+      <stop offset="100%" stop-color="#d09a1b"/>
+    </radialGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="42%" r="48%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f7e9b9"/>
+    </radialGradient>
+    <linearGradient id="flame" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="112" fill="url(#goldGlow)"/>
+  <circle cx="120" cy="120" r="100" fill="#f8d978" stroke="#b57d10" stroke-width="3"/>
+  <circle cx="120" cy="120" r="59" fill="url(#centerGlow)" stroke="#d0a74a" stroke-width="2.5"/>
+  <path d="M120 42c11 10 18 23 18 36 0 10-7 20-18 27-11-7-18-17-18-27 0-13 7-26 18-36Z" fill="url(#flame)"/>
+  <path d="M120 72c8 10 12 20 12 31 0 8-4 15-12 21-8-6-12-13-12-21 0-11 4-21 12-31Z" fill="#fde68a"/>
+  <path d="M85 136c12-8 23-12 35-12s23 4 35 12l-10 19H95l-10-19Z" fill="#b45309"/>
+  <path d="M97 116c7-9 15-14 23-14s16 5 23 14" fill="none" stroke="#7c3f00" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="120" cy="116" r="8" fill="#f59e0b"/>
+  <path d="M120 25a95 95 0 0 1 80 43" fill="none" stroke="#8a4d00" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+  <path d="M38 176a95 95 0 0 1-1-104" fill="none" stroke="#8a4d00" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+  <path d="M188 174a95 95 0 0 1-126 15" fill="none" stroke="#8a4d00" stroke-width="8" stroke-linecap="round" opacity=".9"/>
+  <text x="120" y="196" text-anchor="middle" font-family="Georgia, serif" font-size="18" font-weight="700" fill="#7c3f00">G V P</text>
+  <text x="120" y="214" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#7c3f00">College of Engineering for Women</text>
+</svg>

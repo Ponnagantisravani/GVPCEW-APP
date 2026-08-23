@@ -3,6 +3,8 @@ import {
   Camera, Edit3, Save, Printer, RotateCcw, Check, Sparkles, User,
   Upload, QrCode, ShieldCheck, Award, Phone, MapPin, RefreshCw, Layers
 } from 'lucide-react';
+import collegeLogoUrl from '../assets/gvpcew-official-logo.png';
+import principalSignatureUrl from '../assets/principal-signature.png';
 
 export function DigitalIdCard({ student }) {
   const STORAGE_KEY = 'gvpcew_digital_id_v2';
@@ -238,6 +240,7 @@ export function DigitalIdCard({ student }) {
             <div className="gvpcew-id-header">
               {/* Official GVP Emblem Seal */}
               <div className="gvpcew-emblem-badge">
+                <img src={collegeLogoUrl} alt="Gayatri Vidya Parishad college emblem" className="gvpcew-emblem-image" />
                 <div className="gvpcew-emblem-inner">
                   {/* Gayatri Mata Flame / Lamp Emblem Art */}
                   <div className="gvp-crest-art">
@@ -351,6 +354,7 @@ export function DigitalIdCard({ student }) {
                   {/* Official Principal Signature & Seal */}
                   <div className="gvpcew-signature-box">
                     <div className="gvpcew-sig-ink">
+                      <img src={principalSignatureUrl} alt="Principal signature" className="gvpcew-signature-image" />
                       {/* Elegant Blue Signature Script */}
                       <svg viewBox="0 0 110 32" className="gvpcew-sig-svg">
                         <path

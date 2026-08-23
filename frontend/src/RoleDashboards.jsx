@@ -11,6 +11,7 @@ import { AcademicCalendarManagement } from './AcademicCalendarManagement.jsx';
 import { ExamScheduleManagement } from './ExamScheduleManagement.jsx';
 import { DigitalIdCard } from './DigitalIdCard.jsx';
 import { FacultyDashboard } from './FacultyDashboard.jsx';
+import logoUrl from '../assets/gvpcew-official-logo.png';
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api' });
 
@@ -53,6 +54,69 @@ const statLabels = {
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const formatTime = value => value ? String(value).slice(0, 5) : '—';
 const message = e => e.response?.data?.message || 'Unable to load this information. Please try again.';
+const reminderStorageKey = 'gvpcew_dashboard_reminders_v1';
+const roleAudienceLabels = {
+  faculty: 'Teachers',
+  student: 'Students',
+  student_coordinator: 'Student Coordinators',
+  academic_coordinator: 'Academic Coordinators',
+  admin: 'Campus Admin'
+};
+
+const defaultReminderTemplates = [
+  { id: 'rem-1', title: 'First period readiness', audience: 'Teachers', time: '08:45', channel: 'Bell + dashboard', tone: 'high', date: '2026-08-24', note: 'Share room changes before the first bell.' },
+  { id: 'rem-2', title: 'Attendance confirmation', audience: 'Students', time: '09:55', channel: 'Dashboard notification', tone: 'medium', date: '2026-08-24', note: 'Students should confirm attendance before the second hour ends.' },
+  { id: 'rem-3', title: 'Coordinator daily roundup', audience: 'Student Coordinators', time: '12:20', channel: 'Silent reminder', tone: 'medium', date: '2026-08-24', note: 'Collect shortage, substitution, and class update notes.' },
+  { id: 'rem-4', title: 'Timetable review alarm', audience: 'Academic Coordinators', time: '16:10', channel: 'Alarm alert', tone: 'high', date: '2026-08-24', note: 'Review next-day timetable conflicts and notices.' }
+];
+
+function getStoredReminders() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(reminderStorageKey) || '[]');
+    return Array.isArray(saved) && saved.length ? saved : defaultReminderTemplates;
+  } catch {
+    return defaultReminderTemplates;
+  }
+}
+
+function saveStoredReminders(reminders) {
+  localStorage.setItem(reminderStorageKey, JSON.stringify(reminders));
+}
+
+function buildRoleNotifications(role, data, values) {
+  const audience = roleAudienceLabels[role] || 'Campus Teams';
+  const noticeFeed = (data.notices || []).slice(0, 2).map((notice, index) => ({
+    id: `notice-${index}`,
+    title: notice.title,
+    detail: notice.description || `${notice.category} update available for ${audience}.`,
+    level: index === 0 ? 'high' : 'medium',
+    meta: notice.category || 'Notice'
+  }));
+
+  const roleSpecific = {
+    faculty: [
+      { id: 'f-1', title: 'Attendance window opens in 15 minutes', detail: 'Mark Section 2 before the first hour begins.', level: 'high', meta: 'Today 08:45' },
+      { id: 'f-2', title: 'Assignment reminders queued', detail: 'Pending submissions can be pushed to students from the dashboard.', level: 'medium', meta: '3 pending' }
+    ],
+    student: [
+      { id: 's-1', title: 'Tomorrow starts with DBMS', detail: 'Room R-301, 09:00 to 09:50.', level: 'medium', meta: 'Monday plan' },
+      { id: 's-2', title: 'Attendance is healthy', detail: `Current average stays around ${values.attendance || '91.5%'}. Keep it above the minimum.`, level: 'low', meta: 'Advisory' }
+    ],
+    student_coordinator: [
+      { id: 'sc-1', title: 'Session QR reminder ready', detail: 'Keep the attendance session code visible five minutes before class.', level: 'high', meta: 'Before each class' },
+      { id: 'sc-2', title: 'Classroom note pending', detail: 'Share lab shift updates with students after lunch.', level: 'medium', meta: 'Today 12:45' }
+    ],
+    academic_coordinator: [
+      { id: 'ac-1', title: 'Two classrooms need review', detail: 'Room allocations for II Year elective slots should be reconfirmed.', level: 'high', meta: 'Urgent' },
+      { id: 'ac-2', title: 'Faculty alert batch is scheduled', detail: 'Tomorrow morning reminders will go to teachers and student coordinators.', level: 'medium', meta: '08:30 batch' }
+    ],
+    admin: [
+      { id: 'a-1', title: 'Portal sync healthy', detail: 'All academic modules were refreshed successfully.', level: 'low', meta: 'System status' }
+    ]
+  };
+
+  return [...(roleSpecific[role] || []), ...noticeFeed].slice(0, 5);
+}
 
 // Reusable Table Component
 function Table({ columns, rows }) {
@@ -510,6 +574,218 @@ function StudentProfileView({ student, name }) {
   );
 }
 
+function ReminderCenter({ role }) {
+  const audience = roleAudienceLabels[role] || 'Campus Teams';
+  const [reminders, setReminders] = useState(() => getStoredReminders());
+  const [form, setForm] = useState({
+    title: '',
+    audience,
+    time: '08:45',
+    date: '2026-08-24',
+    channel: 'Dashboard notification',
+    tone: 'medium',
+    note: ''
+  });
+
+  useEffect(() => {
+    saveStoredReminders(reminders);
+  }, [reminders]);
+
+  useEffect(() => {
+    setForm(prev => ({ ...prev, audience }));
+  }, [audience]);
+
+  const visibleReminders = reminders.filter(item => role === 'admin' || item.audience === audience);
+
+  function submitReminder(e) {
+    e.preventDefault();
+    const newReminder = { ...form, id: `rem-${Date.now()}` };
+    setReminders(prev => [newReminder, ...prev]);
+    setForm(prev => ({ ...prev, title: '', note: '', audience }));
+  }
+
+  return (
+    <div className="reminder-center">
+      <div className="reminder-center__intro">
+        <div>
+          <p className="eyebrow">Reminder Center</p>
+          <h3>Notifications and alarms for {audience}</h3>
+          <p className="muted">Create clean reminders for classes, updates, attendance checks, and timetable alerts.</p>
+        </div>
+        <div className="reminder-pills">
+          <span className="reminder-pill high">Alarm ready</span>
+          <span className="reminder-pill soft">{visibleReminders.length} active</span>
+        </div>
+      </div>
+
+      <form className="workspace-form reminder-form" onSubmit={submitReminder}>
+        <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Reminder title" required />
+        <select value={form.audience} onChange={e => setForm({ ...form, audience: e.target.value })}>
+          {Object.values(roleAudienceLabels).map(label => <option key={label} value={label}>{label}</option>)}
+        </select>
+        <input type="date" value={form.date} min="2026-08-23" onChange={e => setForm({ ...form, date: e.target.value })} required />
+        <input type="time" value={form.time} onChange={e => setForm({ ...form, time: e.target.value })} required />
+        <select value={form.channel} onChange={e => setForm({ ...form, channel: e.target.value })}>
+          <option>Dashboard notification</option>
+          <option>Bell + dashboard</option>
+          <option>Alarm alert</option>
+          <option>Silent reminder</option>
+        </select>
+        <select value={form.tone} onChange={e => setForm({ ...form, tone: e.target.value })}>
+          <option value="low">Low priority</option>
+          <option value="medium">Medium priority</option>
+          <option value="high">High priority</option>
+        </select>
+        <textarea value={form.note} onChange={e => setForm({ ...form, note: e.target.value })} placeholder="Optional note for the class or role team" />
+        <button type="submit">Save reminder</button>
+      </form>
+
+      <div className="reminder-list">
+        {visibleReminders.map(item => (
+          <article key={item.id} className={`reminder-card ${item.tone}`}>
+            <div className="reminder-card__top">
+              <div>
+                <strong>{item.title}</strong>
+                <span>{item.audience}</span>
+              </div>
+              <button type="button" className="text-button" onClick={() => setReminders(prev => prev.filter(entry => entry.id !== item.id))}>Clear</button>
+            </div>
+            <p>{item.note || 'Scheduled class reminder ready to show on the dashboard.'}</p>
+            <div className="reminder-meta">
+              <span><Clock /> {item.date} at {item.time}</span>
+              <span><Bell /> {item.channel}</span>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DashboardHome({ role, name, student, items, statValues, notifications, onNavigate }) {
+  const campusLabel = student.profile?.department || headlines[role];
+  const quickHighlights = {
+    faculty: [
+      { icon: Clock, title: 'Today’s flow', text: 'Track periods, attendance, and announcements from one clean space.' },
+      { icon: BookMarked, title: 'Class readiness', text: 'Keep lesson slots, rooms, and student updates aligned.' }
+    ],
+    student: [
+      { icon: Award, title: 'Academic focus', text: 'Check attendance, assignments, timetable, and notices quickly.' },
+      { icon: Clock, title: 'Next class clarity', text: 'Use reminders and the timetable to stay prepared every hour.' }
+    ],
+    student_coordinator: [
+      { icon: Users, title: 'Class coordination', text: 'Manage attendance sessions, notices, and room updates easily.' },
+      { icon: Bell, title: 'Reminder support', text: 'Push clean class alerts before sessions start.' }
+    ],
+    academic_coordinator: [
+      { icon: ShieldCheck, title: 'Academic control', text: 'Oversee timetable, sections, exams, calendar, and notices from one dashboard.' },
+      { icon: TrendingUp, title: 'Daily review', text: 'Catch timetable clashes and send reminders before they become issues.' }
+    ],
+    admin: [
+      { icon: ShieldCheck, title: 'Campus overview', text: 'Monitor the overall portal, notices, and academic operations.' },
+      { icon: Users, title: 'System visibility', text: 'See where support or approvals are needed next.' }
+    ]
+  };
+
+  return (
+    <>
+      <section className="hero-panel">
+        <div className="hero-copy">
+          <div className="hero-badge">GVPCEW Smart Campus</div>
+          <h1>{role === 'academic_coordinator' ? 'Academic coordination, made clear and elegant.' : `Welcome, ${name.split(' ')[0]}`}</h1>
+          <p>{campusLabel} portal with a cleaner layout, logo-based branding, quick actions, and reminder support for every role.</p>
+          <div className="hero-actions">
+            <button onClick={() => onNavigate(items[0] || 'Dashboard')}>Open workspace</button>
+            <button className="secondary" onClick={() => onNavigate(role === 'student' ? 'Notifications' : role === 'faculty' ? 'Class Announcements' : 'Academic Announcements')}>View alerts</button>
+          </div>
+        </div>
+        <div className="hero-brand-card">
+          <img src={logoUrl} alt="GVPCEW logo" className="brand-logo-mark" />
+          <div>
+            <p>Gayatri Vidya Parishad</p>
+            <strong>College of Engineering for Women</strong>
+            <span>Elegant role dashboard with notifications, reminders, and streamlined actions.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="profile profile--elevated">
+        <div className="brand-avatar-wrap">
+          <img src={logoUrl} alt="GVPCEW logo" className="avatar-logo" />
+          <div className="avatar">{name[0] || 'G'}</div>
+        </div>
+        <div>
+          <h2>{name}</h2>
+          <p>{campusLabel} • GVPCEW</p>
+        </div>
+      </section>
+
+      <section className="stats">
+        {statLabels[role].map((label, index) => (
+          <Stat key={label} label={label} value={statValues[index]} index={index} note={index === 3 ? 'Live attention points' : 'Live campus overview'} />
+        ))}
+      </section>
+
+      <section className="dashboard-split">
+        <article className="panel spotlight-panel">
+          <div className="panel-head">
+            <h2>Priority notifications</h2>
+            <span>{notifications.length} active</span>
+          </div>
+          <div className="alert-stack">
+            {notifications.map(item => (
+              <div key={item.id} className={`alert-row ${item.level}`}>
+                <Bell />
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.detail}</p>
+                </div>
+                <small>{item.meta}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className="panel">
+          <div className="panel-head">
+            <h2>Quick highlights</h2>
+            <button onClick={() => onNavigate(items[0] || 'Dashboard')}>Open main module</button>
+          </div>
+          <div className="quick-highlight-list">
+            {(quickHighlights[role] || []).map(item => {
+              const Icon = item.icon;
+              return (
+                <div key={item.title} className="quick-highlight-item">
+                  <span className="icon blue"><Icon /></span>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.text}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </article>
+      </section>
+
+      <section className="grid" style={{ marginTop: '18px' }}>
+        {role === 'student' && (
+          <StudentCalendarHighlight onNavigate={onNavigate} />
+        )}
+        {items.map(item => (
+          <article className="panel module-card" key={item}>
+            <div className="panel-head">
+              <h2>{item}</h2>
+              <button onClick={() => onNavigate(item)}>Open</button>
+            </div>
+            <p className="muted">{item === 'Timetable Management' ? 'Design, publish, and monitor class slots with less clutter.' : 'Open live academic records and actions in a cleaner workspace.'}</p>
+          </article>
+        ))}
+      </section>
+    </>
+  );
+}
+
 // Main Exported RoleDashboard Component
 export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRoleChange, roles = [] }) {
   const [data, setData] = useState({ subjects: [], timetable: [], notices: [], events: [], values: {} });
@@ -606,6 +882,9 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
     ? [values.subjects || 28, values.students || 388, values.faculty || 42, values.notices || 6]
     : [values.students || 388, values.faculty || 42, values.sessions || 4, values.notices || 6];
 
+  const notifications = buildRoleNotifications(role, data, values);
+  const unreadCount = notifications.length;
+
   const panelDescriptions = {
     'Academic Calendar': 'View official academic year calendar, semester schedules & holidays.',
     'Exam Schedule': 'View Mid-I, Mid-II internals & regular examination timetables.',
@@ -627,7 +906,13 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
     <div className="shell">
       {/* Sidebar */}
       <aside className={mobileOpen ? 'open' : ''}>
-        <div className="brand"><GraduationCap /> GVPCEW</div>
+        <div className="brand">
+          <img src={logoUrl} alt="GVPCEW logo" className="sidebar-logo" />
+          <div>
+            <span>GVPCEW</span>
+            <small>Campus Portal</small>
+          </div>
+        </div>
         <p className="school">College of Engineering for Women</p>
 
         {roles.length > 1 && (
@@ -664,7 +949,7 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
           </div>
           <button className="notification" onClick={load} title="Refresh dashboard">
             <Bell />
-            <i>0</i>
+            <i>{unreadCount}</i>
           </button>
         </header>
 
@@ -831,7 +1116,28 @@ function Workspace({ role, title, data, student, name, canPublish, canSessions, 
     content = (
       <>
         <Table columns={['Circular Title', 'Category', 'Published Date', 'Details']} rows={notices} />
+        <ReminderCenter role={role} />
         {canPublish && <NoticeForm onCreated={reload} />}
+      </>
+    );
+  } else if (title.includes('Notification')) {
+    content = (
+      <>
+        <div className="panel" style={{ padding: '0', boxShadow: 'none', border: '0', marginBottom: '16px' }}>
+          <div className="alert-stack">
+            {buildRoleNotifications(role, data, values).map(item => (
+              <div key={item.id} className={`alert-row ${item.level}`}>
+                <Bell />
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.detail}</p>
+                </div>
+                <small>{item.meta}</small>
+              </div>
+            ))}
+          </div>
+        </div>
+        <ReminderCenter role={role} />
       </>
     );
   } else if ((title.includes('Attendance') || title.includes('Session')) && canSessions) {
