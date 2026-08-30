@@ -7,8 +7,9 @@ const app = createApp();
 async function start() {
   try {
     await verifyDatabaseConnection();
-    app.listen(env.port, () => {
-      console.log(`Backend listening on http://localhost:${env.port}`);
+
+    app.listen(env.port, "0.0.0.0", () => {
+      console.log(`Backend listening on port ${env.port}`);
     });
   } catch (error) {
     console.error("Failed to start backend.");
