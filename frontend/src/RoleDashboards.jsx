@@ -965,14 +965,6 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
           />
         ) : isHome ? (
           <>
-            <section className="profile">
-              <div className="avatar">{name[0] || 'S'}</div>
-              <div>
-                <h2>{name}</h2>
-                <p>{student.profile?.department || headlines[role]} • GVPCEW</p>
-              </div>
-            </section>
-
             <section className="stats">
               {statLabels[role].map((label, index) => (
                 <Stat key={label} label={label} value={statValues[index]} index={index} />
@@ -985,16 +977,21 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
               </section>
             )}
 
-            <section className="grid">
-              {items.map(item => (
-                <article className="panel" key={item}>
-                  <div className="panel-head">
-                    <h2>{item}</h2>
-                    <button onClick={() => onNavigate(item)}>Open</button>
-                  </div>
-                  <p className="muted">{panelDescriptions[item] || 'Open live academic records and available actions.'}</p>
-                </article>
-              ))}
+            <section className="panel dashboard-home-actions">
+              <div className="panel-head">
+                <div>
+                  <h2>Today</h2>
+                  <p className="muted">Choose a task to continue. All other tools are in the menu.</p>
+                </div>
+              </div>
+              <div className="compact-action-list">
+                {items.slice(0, 4).map(item => (
+                  <button className="compact-action" key={item} onClick={() => onNavigate(item)}>
+                    <span>{item}</span>
+                    <small>{panelDescriptions[item] || 'Open workspace'}</small>
+                  </button>
+                ))}
+              </div>
             </section>
           </>
         ) : (
@@ -1007,6 +1004,7 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
             canPublish={canPublish}
             canSessions={canSessions}
             reload={load}
+            values={values}
           />
         )}
       </main>
@@ -1034,7 +1032,7 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
 }
 
 // Workspace Component rendering active sub-modules
-function Workspace({ role, title, data, student, name, canPublish, canSessions, reload }) {
+function Workspace({ role, title, data, student, name, canPublish, canSessions, reload, values }) {
   let content;
 
   // Fallback subjects
