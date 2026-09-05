@@ -7,6 +7,7 @@ import { studentRouter } from './student.js';
 import { portalRouter } from './portal.js';
 import { attendanceSessionRouter } from './attendanceSessions.js';
 import { timetableRouter } from './timetable.js';
+import { facultyLeaveRequestsRouter } from './facultyLeaveRequests.js';
 
 export const router = Router();
 
@@ -18,3 +19,4 @@ router.use('/students', studentRouter);
 router.use('/', portalRouter);
 router.use('/attendance-sessions', attendanceSessionRouter);
 router.use('/timetables', timetableRouter);
+router.use('/faculty/leave-requests', facultyLeaveRequestsRouter);

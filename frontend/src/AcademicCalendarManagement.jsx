@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Edit3, Check, Save, Share2, FolderOpen, Plus, Trash2, X, RotateCcw, Sparkles, Printer } from 'lucide-react';
+import collegeLogoUrl from '../assets/gvpcew-official-logo.png';
 
 export const CALENDAR_TEMPLATES = [
   {
@@ -506,9 +507,14 @@ export function AcademicCalendarManagement({ role = 'academic_coordinator' }) {
       <section className={`academic-calendar ${isEditing ? 'calendar-is-editing' : ''}`}>
         {/* Header Details */}
         <div className="calendar-institution">
-          <b>Gayatri Vidya Parishad College of Engineering for Women</b>
-          <span>(Autonomous), Madhurawada, Visakhapatnam – 530 048</span>
-          <span>Affiliated to Andhra University, Visakhapatnam</span>
+          <div className="document-institution-heading">
+            <img src={collegeLogoUrl} alt="GVPCEW logo" className="document-institution-logo" />
+            <div>
+              <b>Gayatri Vidya Parishad College of Engineering for Women</b>
+              <span>(Autonomous), Madhurawada, Visakhapatnam – 530 048</span>
+              <span>Affiliated to Andhra University, Visakhapatnam</span>
+            </div>
+          </div>
         </div>
 
         <h2>Academic Calendar</h2>

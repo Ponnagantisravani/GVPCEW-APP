@@ -301,4 +301,5 @@ create index if not exists idx_dataset_images_roll_number on dataset_images(roll
 create index if not exists idx_marks_student on marks(student_id);
 create index if not exists idx_assignments_deadline on assignments(deadline);
 create index if not exists idx_leave_requests_student on leave_requests(student_id, created_at desc);
+create index if not exists idx_leave_requests_status on leave_requests(status, created_at desc);
 create index if not exists idx_notifications_user_unread on notifications(user_id) where read_at is null;

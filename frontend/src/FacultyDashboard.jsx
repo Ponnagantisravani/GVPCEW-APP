@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 import {
   Calendar, Clock, CheckCircle2, XCircle, AlertTriangle, Users, BookOpen,
   ClipboardList, Award, FileText, Check, Plus, Edit3, Trash2, Printer,
@@ -13,6 +14,16 @@ const FACULTY_ASSIGNMENTS_KEY = 'gvpcew_faculty_assignments_v2';
 const FACULTY_INTERNAL_MARKS_KEY = 'gvpcew_faculty_internal_marks_v2';
 const FACULTY_CORRECTIONS_KEY = 'gvpcew_faculty_corrections_v2';
 const FACULTY_SUBSTITUTIONS_KEY = 'gvpcew_faculty_substitutions_v2';
+const facultyApi = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api' });
+
+function facultyApiConfig() {
+  try {
+    const session = JSON.parse(localStorage.getItem('gvpcew_session') || '{}');
+    return session.token ? { headers: { Authorization: `Bearer ${session.token}` } } : {};
+  } catch {
+    return {};
+  }
+}
 
 // -----------------------------------------------------------------------------
 // COMPLETE OFFICIAL CSE SECTION 3 STUDENT ROSTER (INCLUDING 324103210170 to L19)
@@ -146,10 +157,46 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
   const [activeCourse, setActiveCourse] = useState('IRS'); // 'IRS', 'MPMC', 'DAA'
   const [showAllAssignments, setShowAllAssignments] = useState(false);
   const [notice, setNotice] = useState('');
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveActionId, setLeaveActionId] = useState('');
+  const [messageRequestId, setMessageRequestId] = useState('');
+  const [messageText, setMessageText] = useState('');
 
   const showNotice = (msg) => {
     setNotice(msg);
     setTimeout(() => setNotice(prev => (prev === msg ? '' : prev)), 3500);
+  };
+
+  const loadLeaveRequests = async () => {
+    setLeaveLoading(true);
+    try {
+      const { data } = await facultyApi.get('/faculty/leave-requests', facultyApiConfig());
+      setLeaveRequests(data.requests || []);
+    } catch {
+      showNotice('Leave requests could not be loaded. Please refresh and try again.');
+    } finally {
+      setLeaveLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'overview' || activeTab === 'Leave & Substitution') loadLeaveRequests();
+  }, [activeTab]);
+
+  const updateLeaveRequest = async (requestId, action, note = '') => {
+    setLeaveActionId(requestId);
+    try {
+      const { data } = await facultyApi.patch('/faculty/leave-requests/' + requestId, { action, note }, facultyApiConfig());
+      setLeaveRequests(prev => prev.map(item => item.id === requestId ? { ...item, ...data.request } : item));
+      setMessageRequestId('');
+      setMessageText('');
+      showNotice(action === 'message' ? 'Your message was sent to the student.' : `Leave request ${action}.`);
+    } catch (error) {
+      showNotice(error.response?.data?.message || 'The leave request could not be updated.');
+    } finally {
+      setLeaveActionId('');
+    }
   };
 
   // Section configurations
@@ -252,6 +299,31 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
           </button>
         </div>
       </div>
+
+      {(activeTab === 'overview' || activeTab === 'Leave & Substitution') && (
+        <section style={{ background: '#ffffff', borderRadius: '10px', border: '1px solid #dce6f4', padding: '20px 24px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '7px', background: '#fff7ed', color: '#c2410c', display: 'grid', placeItems: 'center' }}><MessageSquare className="w-4 h-4" /></div>
+              <div><h3 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#0f172a' }}>Student Leave Requests</h3><p style={{ margin: '2px 0 0', fontSize: '12px', color: '#64748b' }}>Review applications or ask the student for more details.</p></div>
+            </div>
+            <button type="button" onClick={loadLeaveRequests} disabled={leaveLoading} style={{ border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', padding: '7px 10px', borderRadius: '6px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>{leaveLoading ? 'Loading...' : 'Refresh'}</button>
+          </div>
+          {leaveLoading && !leaveRequests.length ? <p style={{ margin: 0, color: '#64748b', fontSize: '13px' }}>Loading leave requests...</p> : !leaveRequests.length ? <p style={{ margin: 0, padding: '16px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '8px', fontSize: '13px' }}>No leave requests are waiting for review.</p> : (
+            <div style={{ display: 'grid', gap: '10px' }}>
+              {leaveRequests.map(request => {
+                const pending = request.status === 'pending';
+                const busy = leaveActionId === request.id;
+                return <article key={request.id} style={{ border: `1px solid ${pending ? '#fed7aa' : '#e2e8f0'}`, borderLeft: `4px solid ${pending ? '#f97316' : request.status === 'approved' ? '#10b981' : '#ef4444'}`, borderRadius: '8px', padding: '13px 14px', background: pending ? '#fffdf9' : '#ffffff' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}><div><strong style={{ color: '#0f172a', fontSize: '13px' }}>{request.student_name}</strong><span style={{ color: '#64748b', fontSize: '12px' }}> · {request.roll_number} · Section {request.section}</span><p style={{ margin: '6px 0 0', color: '#334155', fontSize: '12.5px' }}><b>Leave:</b> {new Date(request.start_date).toLocaleDateString()} to {new Date(request.end_date).toLocaleDateString()} · {request.reason}</p>{request.reviewer_note && <p style={{ margin: '5px 0 0', color: '#475569', fontSize: '12px' }}><b>Faculty note:</b> {request.reviewer_note}</p>}</div><span className={`status ${request.status}`} style={{ height: 'fit-content' }}>{request.status}</span></div>
+                  {pending && <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginTop: '11px' }}><button type="button" disabled={busy} onClick={() => updateLeaveRequest(request.id, 'approved')} style={{ border: 0, background: '#087a62', color: '#ffffff', padding: '7px 11px', borderRadius: '6px', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>Approve</button><button type="button" disabled={busy} onClick={() => { const note = window.prompt('Reason for rejecting this leave request:'); if (note?.trim()) updateLeaveRequest(request.id, 'rejected', note.trim()); }} style={{ border: '1px solid #fecaca', background: '#fff1f2', color: '#b91c1c', padding: '7px 11px', borderRadius: '6px', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>Reject</button><button type="button" disabled={busy} onClick={() => { setMessageRequestId(request.id); setMessageText(request.reviewer_note || ''); }} style={{ border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', padding: '7px 11px', borderRadius: '6px', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>Request Details</button></div>}
+                  {messageRequestId === request.id && <div style={{ display: 'grid', gap: '8px', marginTop: '10px' }}><textarea value={messageText} onChange={e => setMessageText(e.target.value)} placeholder="Ask the student for the information you need..." style={{ minHeight: '68px', padding: '9px', border: '1px solid #bfdbfe', borderRadius: '6px', resize: 'vertical', fontSize: '12px' }} /><div style={{ display: 'flex', gap: '8px' }}><button type="button" disabled={busy || !messageText.trim()} onClick={() => updateLeaveRequest(request.id, 'message', messageText.trim())} style={{ border: 0, background: '#2563eb', color: '#ffffff', padding: '7px 11px', borderRadius: '6px', fontSize: '12px', fontWeight: '800', cursor: 'pointer' }}>Send Message</button><button type="button" onClick={() => { setMessageRequestId(''); setMessageText(''); }} style={{ border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', padding: '7px 11px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button></div></div>}
+                </article>;
+              })}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* =========================================================================
           1. ASSIGNMENT MARKS SECTION (MATCHING SCREENSHOT 1)

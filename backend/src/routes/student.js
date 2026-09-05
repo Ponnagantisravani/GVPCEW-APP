@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { pool } from '../config/db.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 import { requireAuth, allowRoles } from '../middleware/auth.js';
 
 export const studentRouter = Router();
@@ -17,15 +18,15 @@ studentRouter.get('/profile', async (req, res) => {
   res.json({ profile: rows[0] });
 });
 
-studentRouter.get('/attendance', async (req, res) => {
+studentRouter.get('/attendance', asyncHandler(async (req, res) => {
   const id = await studentId(req.user.sub);
   const { rows } = await pool.query(`select su.code, su.name, count(a.id)::int classes,
     count(a.id) filter (where a.status in ('present','late'))::int present,
-    coalesce(round(100.0 * count(a.id) filter (where a.status in ('present','late')) / nullif(count(a.id),0), 0) percentage
+    coalesce(round(100.0 * count(a.id) filter (where a.status in ('present','late')) / nullif(count(a.id),0), 0), 0) as percentage
     from subjects su left join attendance a on a.subject_id=su.id and a.student_id=$1 group by su.id order by su.code`, [id]);
   const overall = rows.length ? Math.round(rows.reduce((sum, r) => sum + Number(r.percentage), 0) / rows.length) : 0;
   res.json({ overall, subjects: rows });
-});
+}));
 
 studentRouter.get('/marks', async (req, res) => {
   const id = await studentId(req.user.sub);
@@ -65,6 +66,16 @@ studentRouter.post('/leave-requests', async (req, res) => {
   if (!startDate || !endDate || !reason?.trim()) return res.status(400).json({ message: 'Start date, end date, and reason are required.' });
   if (new Date(`${endDate}T00:00:00`) < new Date(`${startDate}T00:00:00`)) return res.status(400).json({ message: 'End date cannot be before the start date.' });
   const { rows } = await pool.query(`insert into leave_requests(student_id,start_date,end_date,reason) values($1,$2,$3,$4) returning id,start_date,end_date,reason,status,created_at`, [id, startDate, endDate, reason.trim()]);
+  await pool.query(`
+    insert into notifications(user_id, title, body, type, link)
+    select f.user_id, 'New student leave request',
+      concat('A student has applied for leave from ', $2::date, ' to ', $3::date, '.'),
+      'leave', '/faculty-dashboard'
+    from faculty f
+    join students s on s.id = $1
+    where f.department_id = s.department_id`,
+    [id, startDate, endDate]
+  );
   res.status(201).json({ request: rows[0] });
 });
 

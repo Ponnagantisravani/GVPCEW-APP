@@ -30,7 +30,7 @@ authRouter.post("/login", async (req, res) => {
   const { email, password } = parsed.data;
   const result = await pool.query(
     `select u.id, u.full_name, u.role, u.password_hash, coalesce(s.face_enrollment_status, 'completed') face_enrollment_status,
-      coalesce(array_agg(ur.role) filter (where ur.role is not null), array[u.role]) roles
+      coalesce(array_agg(ur.role) filter (where ur.role is not null), '{}'::text[]) roles
      from users u left join students s on s.user_id=u.id left join user_roles ur on ur.user_id=u.id where u.email = $1 group by u.id, s.face_enrollment_status limit 1`,
     [email]
   );
@@ -43,6 +43,9 @@ authRouter.post("/login", async (req, res) => {
   const ok = await bcrypt.compare(password, user.password_hash);
   if (!ok) {
     return res.status(401).json({ message: "Invalid credentials" });
+  }
+  if (!user.roles.length) {
+    return res.status(403).json({ message: 'Your account is waiting for portal access. Please contact an administrator.' });
   }
   if (user.roles.includes('student') && user.face_enrollment_status !== 'completed') {
     return res.status(403).json({ message: 'Complete face enrollment before signing in to your account.' });
@@ -61,7 +64,7 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.get('/me', requireAuth, async (req, res) => {
-  const { rows } = await pool.query(`select u.id,u.full_name,u.email,u.role,coalesce(array_agg(ur.role) filter(where ur.role is not null),array[u.role]) roles from users u left join user_roles ur on ur.user_id=u.id where u.id=$1 group by u.id`, [req.user.sub]);
+  const { rows } = await pool.query(`select u.id,u.full_name,u.email,u.role,coalesce(array_agg(ur.role) filter(where ur.role is not null),'{}'::text[]) roles from users u left join user_roles ur on ur.user_id=u.id where u.id=$1 group by u.id`, [req.user.sub]);
   if (!rows[0]) return res.status(401).json({ message: 'Session user no longer exists' });
   res.json({ user: { id: rows[0].id, fullName: rows[0].full_name, email: rows[0].email, role: rows[0].role, roles: rows[0].roles } });
 });

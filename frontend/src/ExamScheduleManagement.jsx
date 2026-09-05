@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   Calendar, Edit3, Check, Save, Share2, FolderOpen, Plus, Trash2,
-  Printer, Filter, Sparkles, Award, ShieldCheck, Clock, BookOpen, ChevronRight, LayoutGrid, Layers
+  Printer, Filter, Sparkles, ShieldCheck, Clock, BookOpen, ChevronRight, LayoutGrid, Layers
 } from 'lucide-react';
+import collegeLogoUrl from '../assets/gvpcew-official-logo.png';
 
 export const BRANCHES = [
   { key: 'cse', name: 'Computer Science & Engineering', short: 'CSE (Sec 1-4)' },
@@ -368,7 +369,7 @@ export function ExamScheduleManagement({ role = 'academic_coordinator' }) {
         <div className="exam-header-container">
           <div className="exam-header-crest">
             <div className="exam-crest-circle">
-              <Award className="w-7 h-7 text-blue-900" />
+              <img src={collegeLogoUrl} alt="GVPCEW logo" className="exam-crest-logo" />
             </div>
           </div>
           <div className="exam-header-text">

@@ -4,7 +4,7 @@ import {
   Bell, BookOpen, Calendar, GraduationCap, Home, IdCard, LayoutDashboard,
   LogOut, Menu, RefreshCw, UserRound, X, CheckCircle2, AlertTriangle,
   Clock, MapPin, Award, FileText, Upload, Plus, Trash2, Eye, ShieldCheck,
-  TrendingUp, Users, Check, Printer, QrCode, ClipboardList, BookMarked
+  TrendingUp, Users, Check, Printer, QrCode, ClipboardList, BookMarked, Search, ArrowRight
 } from 'lucide-react';
 import { TimetableManagement } from './TimetableManagement.jsx';
 import { AcademicCalendarManagement } from './AcademicCalendarManagement.jsx';
@@ -32,7 +32,7 @@ const menus = {
   ],
   academic_coordinator: ['Timetable Management', 'Conflict Detection', 'Class & Section Management', 'Academic Calendar', 'Exam Schedule', 'Academic Announcements', 'Academic Reports'],
   student: ['Academic Calendar', 'Exam Schedule', 'Digital ID', 'Student Profile', 'Attendance', 'My Timetable', 'My Subjects', 'Assignments', 'Internal Marks & Results', 'Leave Requests', 'Notices & Announcements', 'Notifications'],
-  student_coordinator: ['Live Attendance', 'Start / Stop Attendance', 'Present & Absent Students', 'Class Timetable', 'Class Announcements', 'Class Information', 'Session QR & Timer']
+  student_coordinator: ['Attendance Session', 'Class Timetable', 'Class Announcements', 'Class Information', 'Session QR & Timer']
 };
 
 const headlines = {
@@ -48,12 +48,14 @@ const statLabels = {
   faculty: ['Total Subjects', 'Today’s Classes', 'Active Sessions', 'Active Notices'],
   academic_coordinator: ['Total Subjects', 'Total Students', 'Total Faculty', 'Active Notices'],
   student: ['Attendance', 'Assignments', 'Upcoming Events', 'Notifications'],
-  student_coordinator: ['Total Subjects', 'Active Session', 'Present Today', 'Active Notices']
+  student_coordinator: ['Total Subjects', 'Classes Today', 'Session Status', 'Active Notices']
 };
 
 const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const formatTime = value => value ? String(value).slice(0, 5) : '—';
-const message = e => e.response?.data?.message || 'Unable to load this information. Please try again.';
+const message = e => e.response?.data?.message || (e.request
+  ? 'Cannot reach the backend. Start it with "npm run dev" inside the backend folder, then refresh this page.'
+  : 'Unable to load this information. Please try again.');
 const reminderStorageKey = 'gvpcew_dashboard_reminders_v1';
 const roleAudienceLabels = {
   faculty: 'Teachers',
@@ -159,6 +161,256 @@ function Stat({ label, value, index, note = 'Live data' }) {
         <small>{note}</small>
       </div>
     </article>
+  );
+}
+
+function UserAccessManagement({ users = [], reload }) {
+  const accessSections = [
+    { value: 'student', title: 'Students', description: 'Students who can sign in to the Student Portal.' },
+    { value: 'student_coordinator', title: 'Student Coordinators', description: 'Students approved to manage class coordination tasks.' },
+    { value: 'faculty', title: 'Faculty', description: 'Teachers who can sign in to the Faculty Portal.' },
+    { value: 'academic_coordinator', title: 'Academic Coordinators', description: 'Staff approved to manage academic coordination.' }
+  ];
+  const [query, setQuery] = useState('');
+  const [activeSection, setActiveSection] = useState(null);
+  const [people, setPeople] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [groupCatalog, setGroupCatalog] = useState([]);
+  const [groupOpen, setGroupOpen] = useState(false);
+  const [branchFilter, setBranchFilter] = useState('');
+  const [sectionFilter, setSectionFilter] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [details, setDetails] = useState(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [form, setForm] = useState({ fullName: '', email: '', password: '', rollNumber: '', section: 'A', employeeCode: '' });
+  const [savingId, setSavingId] = useState('');
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const sectionLabel = activeSection?.value === 'faculty' ? 'Faculty' : activeSection?.title?.slice(0, -1);
+  const isStudentGroup = ['student', 'student_coordinator'].includes(activeSection?.value);
+  const isGroupedRole = isStudentGroup || activeSection?.value === 'faculty';
+  const managementGroups = useMemo(() => {
+    const groups = new Map();
+    const add = (department, section) => {
+      const key = JSON.stringify([department || '__unassigned', isStudentGroup ? section || '' : '']);
+      if (!groups.has(key)) groups.set(key, { key, department: department || '__unassigned', section: isStudentGroup ? section || '' : '' });
+    };
+    if (isStudentGroup) groupCatalog.forEach(group => add(group.department, group.section));
+    else departments.forEach(department => add(department, ''));
+    people.forEach(person => add(person.department, person.section));
+    return [...groups.values()].map(group => ({ ...group, count: people.filter(person => (person.department || '__unassigned') === group.department && (!isStudentGroup || (person.section || '') === group.section)).length }));
+  }, [groupCatalog, departments, people, isStudentGroup]);
+
+  const filteredUsers = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    if (!term) return users;
+    return users.filter((user) =>
+      [user.full_name, user.email, user.role, ...(user.roles || [])]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term))
+    );
+  }, [query, users]);
+
+  const filteredPeople = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return people.filter((person) => (!isGroupedRole ||
+      ((!branchFilter || (person.department || '__unassigned') === branchFilter) && (!sectionFilter || person.section === sectionFilter))) && (!term ||
+      [person.full_name, person.email, person.roll_number, person.employee_code]
+        .some((value) => String(value || '').toLowerCase().includes(term))));
+  }, [query, people, isGroupedRole, branchFilter, sectionFilter]);
+  const sectionOptions = [...new Set(people.filter(person => !branchFilter || (person.department || '__unassigned') === branchFilter).map(person => person.section).filter(Boolean))].sort();
+  const searchResults = filteredUsers.filter((user) => accessSections.some((section) =>
+    (user.roles || [user.role]).includes(section.value)));
+
+  async function updateRoles(user, nextRoles) {
+    setSavingId(user.id);
+    setError('');
+    setNotice('');
+    try {
+      await api.patch(`/users/${user.id}/roles`, { roles: nextRoles });
+      setNotice(`Access updated for ${user.full_name}.`);
+      await reload?.();
+      setTimeout(() => setNotice(''), 3000);
+    } catch (err) {
+      setError(message(err));
+    } finally {
+      setSavingId('');
+    }
+  }
+
+  async function openSection(section) {
+    setGroupOpen(false);
+    setBranchFilter('');
+    setSectionFilter('');
+    setPeople([]);
+    setActiveSection(section);
+    setEditing(null);
+    setDetails(null);
+    setFormOpen(false);
+    setForm({ fullName: '', email: '', password: '', rollNumber: '', section: 'A', employeeCode: '' });
+    setError('');
+    try {
+      const { data } = await api.get(`/admin/people?role=${section.value}`);
+      setPeople(data.people || []);
+      setDepartments(data.departments || []);
+      setGroupCatalog(data.groups || []);
+    } catch (err) {
+      setError(message(err));
+      setPeople([]);
+    }
+  }
+
+  async function refreshPeople() {
+    if (!activeSection) return;
+    const { data } = await api.get(`/admin/people?role=${activeSection.value}`);
+    setPeople(data.people || []);
+    setDepartments(data.departments || []);
+    setGroupCatalog(data.groups || []);
+  }
+
+  async function savePerson(event) {
+    event.preventDefault();
+    setSavingId('form');
+    setError('');
+    try {
+      if (editing) {
+        await api.patch(`/admin/people/${editing.id}`, form);
+      } else {
+        await api.post('/admin/people', { ...form, role: activeSection.value });
+      }
+      setNotice(editing ? 'Details updated.' : 'Account created and portal access granted.');
+      setEditing(null);
+      setFormOpen(false);
+      setForm({ fullName: '', email: '', password: '', rollNumber: '', section: 'A', employeeCode: '' });
+      await refreshPeople();
+      await reload?.();
+    } catch (err) {
+      setError(message(err));
+    } finally {
+      setSavingId('');
+    }
+  }
+
+  async function deletePerson(person) {
+    if (!window.confirm(`Delete ${person.full_name}? This permanently removes their account and access.`)) return;
+    setSavingId(person.id);
+    setError('');
+    try {
+      await api.delete(`/admin/people/${person.id}`);
+      setNotice(`${person.full_name} was deleted.`);
+      await refreshPeople();
+      await reload?.();
+    } catch (err) {
+      setError(message(err));
+    } finally {
+      setSavingId('');
+    }
+  }
+
+  function startEdit(person) {
+    setEditing(person);
+    setDetails(null);
+    setFormOpen(true);
+    setForm({ fullName: person.full_name, email: person.email, password: '', rollNumber: person.roll_number || '', section: person.section || 'A', department: person.department || '', employeeCode: person.employee_code || '' });
+  }
+
+  return (
+    <div className="access-management">
+      <div className="access-toolbar">
+        <div className="panel-head" style={{ marginBottom: 0 }}>
+          <div>
+            <span className="access-eyebrow">PEOPLE & PERMISSIONS</span>
+            <h2 className="access-title">Manage portal access</h2>
+            <p className="muted" style={{ margin: 0 }}>Choose a role to manage accounts and portal access.</p>
+          </div>
+        </div>
+        <label className="access-search"><Search size={19} aria-hidden="true" /><input
+          type="search"
+          aria-label="Search portal accounts by name or email"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search by name or email"
+        /></label>
+        {notice && <p className="success-message" style={{ margin: 0 }}>{notice}</p>}
+        {error && <p className="error" style={{ margin: 0 }}>{error}</p>}
+      </div>
+
+      {!activeSection && query.trim() && <section className="panel" style={{ margin: 0 }} aria-label="Account search results">
+        <p className="muted" role="status">{searchResults.length ? `${searchResults.length} matching account${searchResults.length === 1 ? '' : 's'}` : 'No accounts match your search.'}</p>
+        {searchResults.length > 0 && <div style={{ overflowX: 'auto' }}><table>
+          <thead><tr><th>Name</th><th>Email</th><th>Manage access</th></tr></thead>
+          <tbody>{searchResults.map((user) => <tr key={user.id}>
+            <td>{user.full_name}</td><td>{user.email}</td>
+            <td><div className="people-actions">{accessSections.filter((section) => (user.roles || [user.role]).includes(section.value)).map((section) =>
+              <button key={section.value} type="button" className="people-action" onClick={() => openSection(section)}>Open {section.title}</button>
+            )}</div></td>
+          </tr>)}</tbody>
+        </table></div>}
+      </section>}
+
+      {!activeSection ? <div className="access-role-grid">
+        {accessSections.map((section, index) => {
+          const RoleIcon = [GraduationCap, Users, BookOpen, ShieldCheck][index];
+          const count = users.filter((user) => (user.roles || [user.role]).includes(section.value)).length;
+          return <button key={section.value} type="button" className={`access-role-card access-role-${index}`} onClick={() => openSection(section)}>
+            <div className="access-card-top"><span className="access-role-icon"><RoleIcon size={23} aria-hidden="true" /></span><span className="access-count">{count} assigned</span></div>
+            <div className="access-card-copy">
+              <h3>{section.title}</h3>
+              <p>{section.description}</p>
+            </div>
+            <span className="access-card-footer">Manage accounts <ArrowRight size={17} aria-hidden="true" /></span>
+          </button>;
+        })}
+      </div> : <section className="panel" style={{ margin: 0 }}>
+        <div className="panel-head">
+          <div><h2 style={{ marginBottom: '4px' }}>{activeSection.title} Management</h2><p className="muted" style={{ margin: 0 }}>Create, edit, or remove accounts in this section.</p></div>
+          <button type="button" className="secondary" onClick={() => { setActiveSection(null); setEditing(null); setFormOpen(false); }}>Back to sections</button>
+        </div>
+        {isGroupedRole && !groupOpen && <div className="management-group-grid">
+          {managementGroups.map(group => <button type="button" className="management-group-card" key={group.key} onClick={() => { setBranchFilter(group.department); setSectionFilter(group.section); setGroupOpen(true); }}>
+            <span className="management-group-tag">{isStudentGroup ? `Section ${group.section || 'Unassigned'}` : 'Department'}</span>
+            <h3>{group.department === '__unassigned' ? 'Unassigned department' : group.department}</h3>
+            <div className="management-group-footer"><strong>{group.count} {isStudentGroup ? (activeSection.value === 'student' ? 'students' : 'coordinators') : 'faculty members'}</strong><ArrowRight size={16} aria-hidden="true" /></div>
+          </button>)}
+          <button type="button" className="management-group-card" onClick={() => { setBranchFilter(''); setSectionFilter(''); setGroupOpen(true); }}><h3>All {activeSection.title}</h3><p>View, search, or add accounts across departments.</p><strong>{people.length} accounts</strong></button>
+        </div>}
+        {(!isGroupedRole || groupOpen) && <>
+        {isGroupedRole && <div className="student-group-filters">
+          <button type="button" className="people-action" onClick={() => setGroupOpen(false)}>Back to {isStudentGroup ? 'sections' : 'departments'}</button>
+          <label>Branch<select value={branchFilter} onChange={event => { setBranchFilter(event.target.value); setSectionFilter(''); }}><option value="">All branches</option>{departments.map(name => <option key={name} value={name}>{name}</option>)}<option value="__unassigned">Unassigned</option></select></label>
+          {isStudentGroup && <label>Section<select value={sectionFilter} onChange={event => setSectionFilter(event.target.value)}><option value="">All sections</option>{[...new Set([...sectionOptions, ...groupCatalog.filter(group => !branchFilter || group.department === branchFilter).map(group => group.section)])].sort().map(name => <option key={name} value={name}>{name}</option>)}</select></label>}
+          <span role="status">{filteredPeople.length} of {people.length} accounts</span>
+          {(branchFilter || sectionFilter || query) && <button type="button" className="people-action" onClick={() => { setBranchFilter(''); setSectionFilter(''); setQuery(''); }}>Clear filters</button>}
+        </div>}
+        <div style={{ overflowX: 'auto', marginTop: '18px' }}>
+          <table>
+            <thead><tr><th>{isStudentGroup ? 'Roll Number' : activeSection.value === 'faculty' ? 'Employee Code' : 'Portal ID'}</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>{filteredPeople.map((person) => <tr key={person.id}>
+              <td>{person.roll_number || person.employee_code || person.id.slice(0, 8).toUpperCase()}</td><td>{person.full_name}{isGroupedRole && <small className="student-group-caption">{person.department || 'Unassigned'}{isStudentGroup ? ` · Section ${person.section || 'Unassigned'}` : ''}</small>}</td><td>{person.email.endsWith('@students.invalid') ? 'Email not provided' : person.email}</td><td>{sectionLabel}</td><td><span style={{ display: 'inline-block', padding: '3px 9px', borderRadius: '999px', background: person.email.endsWith('@students.invalid') ? '#fff3d6' : '#dcfce7', color: person.email.endsWith('@students.invalid') ? '#805800' : '#166534', fontSize: '12px', fontWeight: '700' }}>{person.email.endsWith('@students.invalid') ? 'Setup needed' : 'Active'}</span></td>
+              <td><div className="people-actions"><button type="button" className="people-action" onClick={() => setDetails(person)}>View Details</button><button type="button" className="people-action people-action-edit" onClick={() => startEdit(person)}>Edit</button><button type="button" className="people-action people-action-delete" disabled={savingId === person.id} onClick={() => deletePerson(person)}>{savingId === person.id ? 'Deleting...' : 'Delete'}</button></div></td>
+            </tr>)}
+            {!filteredPeople.length && <tr><td colSpan="6" className="muted">{query.trim() || branchFilter || sectionFilter ? 'No accounts match your search and filters.' : `No ${activeSection.title.toLowerCase()} have been added yet.`}</td></tr>}</tbody>
+          </table>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginTop: '18px', flexWrap: 'wrap' }}><p className="muted" style={{ margin: 0 }}>Use Add to create an account and grant its portal access.</p><button type="button" className="people-add" onClick={() => { setEditing(null); setForm({ fullName: '', email: '', password: '', rollNumber: '', department: branchFilter === '__unassigned' ? '' : branchFilter, section: sectionFilter || '1', employeeCode: '' }); setFormOpen(true); }}>+ Add {sectionLabel}</button></div>
+        </>}
+      </section>}
+      {formOpen && activeSection && <div className="timetable-modal-backdrop"><section className="timetable-modal-content"><div className="modal-header"><div><h2>{editing ? `Edit ${sectionLabel}` : `Add ${sectionLabel}`}</h2><p className="muted">Enter the account details for portal access.</p></div><button type="button" className="modal-close-btn" onClick={() => setFormOpen(false)}>X</button></div><form className="modal-form" onSubmit={savePerson}>
+        <input placeholder="Full name" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required />
+        <input type="email" placeholder="College email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+        <input className="full" type="password" autoComplete="new-password" minLength="8" aria-label={editing ? 'New password (optional)' : 'Temporary password'} placeholder={editing ? 'New password (leave blank to keep current)' : 'Temporary password (minimum 8 characters)'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required={!editing} />
+        {editing?.email?.endsWith('@students.invalid') && <p className="muted full">This imported student needs a college email and a new password before signing in.</p>}
+        {isStudentGroup && <>
+          <label className="student-group-field">Roll number<input placeholder="Roll number" value={form.rollNumber} onChange={(e) => setForm({ ...form, rollNumber: e.target.value })} required /></label>
+          <label className="student-group-field">Branch<input list="student-branch-options" placeholder="Select or type a branch" maxLength={120} value={form.department ?? ''} onChange={e => setForm({ ...form, department: e.target.value })} required /><datalist id="student-branch-options">{departments.map(name => <option key={name} value={name} />)}</datalist></label>
+          <label className="student-group-field">Section<input placeholder="e.g. A, B, C" maxLength={30} value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value.toUpperCase() })} required /></label>
+        </>}
+        {activeSection.value === 'faculty' && <input className="full" placeholder="Employee code" value={form.employeeCode} onChange={(e) => setForm({ ...form, employeeCode: e.target.value })} required />}
+        {activeSection.value === 'faculty' && <label className="student-group-field">Department<input list="faculty-departments" placeholder="Select or type a department" maxLength={120} value={form.department || ''} onChange={event => setForm({ ...form, department: event.target.value })} required /><datalist id="faculty-departments">{departments.map(name => <option key={name} value={name} />)}</datalist></label>}
+        <div className="modal-actions"><button type="button" className="secondary" onClick={() => setFormOpen(false)}>Cancel</button><button disabled={savingId === 'form'}>{savingId === 'form' ? 'Saving...' : editing ? 'Save changes' : 'Create account'}</button></div>
+      </form></section></div>}
+      {details && <div className="timetable-modal-backdrop"><section className="timetable-modal-content"><div className="modal-header"><div><h2>{details.full_name}</h2><p className="muted">{sectionLabel} account details</p></div><button type="button" className="modal-close-btn" onClick={() => setDetails(null)}>X</button></div><div style={{ display: 'grid', gap: '12px' }}><p><strong>Email:</strong> {details.email.endsWith('@students.invalid') ? 'Not provided' : details.email}</p><p><strong>Portal role:</strong> {sectionLabel}</p><p><strong>Department:</strong> {details.department || 'Unassigned'}</p>{isStudentGroup && details.roll_number && <p><strong>Roll number:</strong> {details.roll_number}</p>}{isStudentGroup && details.section && <p><strong>Section:</strong> {details.section}</p>}{details.employee_code && <p><strong>Employee code:</strong> {details.employee_code}</p>}<p><strong>Access:</strong> {details.email.endsWith('@students.invalid') ? 'Email and password setup needed' : 'Active'}</p></div></section></div>}
+    </div>
   );
 }
 
@@ -372,11 +624,12 @@ function LeaveRequests() {
 
       <h3 style={{ fontSize: '14px', fontWeight: '800', margin: '18px 0 10px', color: '#0f172a' }}>My Leave Application History</h3>
       <Table
-        columns={['From Date', 'To Date', 'Reason', 'Status', 'Submitted On']}
+        columns={['From Date', 'To Date', 'Reason', 'Faculty Response', 'Status', 'Submitted On']}
         rows={requests.map(x => [
           new Date(x.start_date).toLocaleDateString(),
           new Date(x.end_date).toLocaleDateString(),
           x.reason,
+          x.reviewer_note || 'No response yet',
           <span className={`status ${x.status}`}>{x.status}</span>,
           new Date(x.created_at).toLocaleDateString()
         ])}
@@ -786,6 +1039,104 @@ function DashboardHome({ role, name, student, items, statValues, notifications, 
   );
 }
 
+function StudentCoordinatorHome({ items, data, onNavigate }) {
+  const today = new Date().getDay();
+  const upcomingClasses = (data.timetable || [])
+    .filter(item => item.day_of_week === today)
+    .slice()
+    .sort((a, b) => String(a.start_time || '').localeCompare(String(b.start_time || '')))
+    .slice(0, 3);
+  const spotlightNotice = (data.notices || [])[0];
+  const sessionCount = Number(data.values?.sessions || 0);
+
+  return (
+    <>
+      <section className="panel dashboard-home-actions" style={{ marginTop: '18px' }}>
+        <div className="panel-head">
+          <div>
+            <h2>Coordinator Focus</h2>
+            <p className="muted">Start attendance quickly, track today&apos;s classes, and share class updates from one place.</p>
+          </div>
+        </div>
+        <div className="compact-action-list">
+          {items.slice(0, 4).map(item => (
+            <button className="compact-action" key={item} onClick={() => onNavigate(item)}>
+              <span>{item}</span>
+              <small>
+                {item === 'Attendance Session'
+                  ? 'Open or stop live attendance sessions for your class.'
+                  : item === 'Class Timetable'
+                  ? 'Check today&apos;s periods, rooms, and faculty slots.'
+                  : item === 'Class Announcements'
+                  ? 'Post important updates and reminder notices.'
+                  : 'View the assigned subjects and class ownership details.'}
+              </small>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid" style={{ marginTop: '18px' }}>
+        <article className="panel">
+          <div className="panel-head">
+            <h2>Session Snapshot</h2>
+            <span>{sessionCount ? `${sessionCount} live` : 'No live session'}</span>
+          </div>
+          <p className="muted" style={{ marginBottom: '12px' }}>
+            {sessionCount
+              ? 'An attendance session is already running. You can stop it or share the code from the session workspace.'
+              : 'No active attendance session right now. Start one before the next class begins.'}
+          </p>
+          <button onClick={() => onNavigate('Attendance Session')}>
+            {sessionCount ? 'Manage Live Session' : 'Start Attendance'}
+          </button>
+        </article>
+
+        <article className="panel">
+          <div className="panel-head">
+            <h2>Next Classes</h2>
+            <button onClick={() => onNavigate('Class Timetable')}>Open timetable</button>
+          </div>
+          {upcomingClasses.length ? (
+            <div className="alert-stack">
+              {upcomingClasses.map((item, index) => (
+                <div key={`${item.subject || 'subject'}-${index}`} className="alert-row low">
+                  <Clock />
+                  <div>
+                    <strong>{item.subject || 'Scheduled class'}</strong>
+                    <p>{formatTime(item.start_time)} to {formatTime(item.end_time)} {item.classroom ? `| ${item.classroom}` : ''}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="muted">No classes are scheduled for today.</p>
+          )}
+        </article>
+
+        <article className="panel span2">
+          <div className="panel-head">
+            <h2>Announcement Priority</h2>
+            <button onClick={() => onNavigate('Class Announcements')}>Open announcements</button>
+          </div>
+          {spotlightNotice ? (
+            <div className="alert-row medium">
+              <Bell />
+              <div>
+                <strong>{spotlightNotice.title}</strong>
+                <p>{spotlightNotice.description || 'A class update is ready for review.'}</p>
+              </div>
+              <small>{spotlightNotice.category || 'Notice'}</small>
+            </div>
+          ) : (
+            <p className="muted">No active announcements right now.</p>
+          )}
+        </article>
+      </section>
+    </>
+  );
+}
+
 // Main Exported RoleDashboard Component
 export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRoleChange, roles = [] }) {
   const [data, setData] = useState({ subjects: [], timetable: [], notices: [], events: [], values: {} });
@@ -877,7 +1228,12 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
     : role === 'faculty'
     ? [values.subjects || 5, data.timetable.filter(t => t.day_of_week === new Date().getDay()).length || 3, values.sessions || 1, values.notices || 4]
     : role === 'student_coordinator'
-    ? [values.subjects || 5, values.sessions ? 'Active' : 'Ready', '64 Present', values.notices || 4]
+    ? [
+        values.subjects || data.subjects.length || 5,
+        data.timetable.filter(t => t.day_of_week === new Date().getDay()).length || 0,
+        values.sessions ? 'Live' : 'Ready',
+        values.notices || data.notices.length || 0
+      ]
     : role === 'academic_coordinator'
     ? [values.subjects || 28, values.students || 388, values.faculty || 42, values.notices || 6]
     : [values.students || 388, values.faculty || 42, values.sessions || 4, values.notices || 6];
@@ -977,22 +1333,26 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
               </section>
             )}
 
-            <section className="panel dashboard-home-actions">
-              <div className="panel-head">
-                <div>
-                  <h2>Today</h2>
-                  <p className="muted">Choose a task to continue. All other tools are in the menu.</p>
+            {role === 'student_coordinator' ? (
+              <StudentCoordinatorHome items={items} data={data} onNavigate={onNavigate} />
+            ) : (
+              <section className="panel dashboard-home-actions">
+                <div className="panel-head">
+                  <div>
+                    <h2>Today</h2>
+                    <p className="muted">Choose a task to continue. All other tools are in the menu.</p>
+                  </div>
                 </div>
-              </div>
-              <div className="compact-action-list">
-                {items.slice(0, 4).map(item => (
-                  <button className="compact-action" key={item} onClick={() => onNavigate(item)}>
-                    <span>{item}</span>
-                    <small>{panelDescriptions[item] || 'Open workspace'}</small>
-                  </button>
-                ))}
-              </div>
-            </section>
+                <div className="compact-action-list">
+                  {items.slice(0, 4).map(item => (
+                    <button className="compact-action" key={item} onClick={() => onNavigate(item)}>
+                      <span>{item}</span>
+                      <small>{panelDescriptions[item] || 'Open workspace'}</small>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
           </>
         ) : (
           <Workspace
@@ -1089,7 +1449,7 @@ function Workspace({ role, title, data, student, name, canPublish, canSessions, 
 
   // Routing
   if (title === 'User Management') {
-    content = <Table columns={['Name', 'Email', 'Primary role', 'Portal roles', 'Created']} rows={(data.users || []).map(x => [x.full_name, x.email, x.role, (x.roles || []).join(', '), new Date(x.created_at).toLocaleDateString()])} />;
+    content = <UserAccessManagement users={data.users || []} reload={reload} />;
   } else if (title === 'Timetable Management' || title.includes('Timetable') || title === 'Conflict Detection' || title.includes('Timetable Monitoring')) {
     content = <TimetableManagement role={role} rows={data.timetable} reload={reload} student={student} />;
   } else if (title === 'Class & Section Management') {
