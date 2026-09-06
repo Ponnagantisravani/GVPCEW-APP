@@ -10,9 +10,11 @@
     "db:migrate:dashboard": "node scripts/migrate-dashboard-tables.js",
     "db:migrate:timetable": "node scripts/migrate-timetable.js",
     "db:migrate:student-features": "node scripts/migrate-student-features.js",
+    "db:migrate:syllabus": "node scripts/migrate-syllabus.js",
     "db:assign-sravani-roles": "node scripts/assign-sravani-roles.js",
     "dev": "node src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test:syllabus": "node scripts/test-syllabus.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.750.0",

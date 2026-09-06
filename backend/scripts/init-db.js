@@ -90,6 +90,7 @@ export async function bootstrapDatabase() {
   try {
     await resetSchema(appClient);
     await runSqlFile(appClient, schemaPath);
+    await appClient.query(await fs.readFile(path.resolve(__dirname, '../../database/syllabus.sql'), 'utf8'));
     await runSqlFile(appClient, seedPath);
     console.log("Schema and seed loaded successfully");
   } finally {

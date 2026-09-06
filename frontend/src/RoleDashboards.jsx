@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { TimetableManagement } from './TimetableManagement.jsx';
 import { AcademicCalendarManagement } from './AcademicCalendarManagement.jsx';
+import { SyllabusManagement } from './SyllabusManagement.jsx';
 import { ExamScheduleManagement } from './ExamScheduleManagement.jsx';
 import { DigitalIdCard } from './DigitalIdCard.jsx';
 import { FacultyDashboard } from './FacultyDashboard.jsx';
@@ -30,8 +31,8 @@ const menus = {
     'Academic Reports',
     'Exam Schedule'
   ],
-  academic_coordinator: ['Timetable Management', 'Conflict Detection', 'Class & Section Management', 'Academic Calendar', 'Exam Schedule', 'Academic Announcements', 'Academic Reports'],
-  student: ['Academic Calendar', 'Exam Schedule', 'Digital ID', 'Student Profile', 'Attendance', 'My Timetable', 'My Subjects', 'Assignments', 'Internal Marks & Results', 'Leave Requests', 'Notices & Announcements', 'Notifications'],
+  academic_coordinator: ['Timetable Management', 'Syllabus', 'Conflict Detection', 'Class & Section Management', 'Academic Calendar', 'Exam Schedule', 'Academic Announcements', 'Academic Reports'],
+  student: ['Academic Calendar', 'Syllabus', 'Exam Schedule', 'Digital ID', 'Student Profile', 'Attendance', 'My Timetable', 'My Subjects', 'Assignments', 'Internal Marks & Results', 'Leave Requests', 'Notices & Announcements', 'Notifications'],
   student_coordinator: ['Attendance Session', 'Class Timetable', 'Class Announcements', 'Class Information', 'Session QR & Timer']
 };
 
@@ -1221,6 +1222,7 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
 
   const panelDescriptions = {
     'Academic Calendar': 'View official academic year calendar, semester schedules & holidays.',
+    'Syllabus': 'View course structures and official syllabus PDFs published by the academic coordinator.',
     'Exam Schedule': 'View Mid-I, Mid-II internals & regular examination timetables.',
     'Digital ID': 'View, customize, and print your official college digital ID card.',
     'My Timetable': 'Check weekly class schedule, subject slots, and classroom locations.',
@@ -1444,6 +1446,8 @@ function Workspace({ role, title, data, student, name, canPublish, canSessions, 
     content = <LeaveRequests />;
   } else if (title.includes('Marks') || title.includes('Results')) {
     content = <Table columns={['Code', 'Subject Title', 'Assessment Type', 'Score', 'Percentage']} rows={studentMarks} />;
+  } else if (title === 'Syllabus') {
+    content = <SyllabusManagement role={role} />;
   } else if (title.includes('Calendar')) {
     content = <AcademicCalendarManagement role={role} />;
   } else if (title.includes('Exam') || title.includes('Schedule')) {

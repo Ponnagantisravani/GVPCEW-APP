@@ -6,3 +6,6 @@ __pycache__/
 .env
 dataset/
 tools/__pycache__/
+
+.tmp/
+*.log
