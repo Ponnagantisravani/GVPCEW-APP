@@ -159,6 +159,7 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
   const [notice, setNotice] = useState('');
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [leaveLoading, setLeaveLoading] = useState(false);
+  const [leaveError, setLeaveError] = useState(false);
   const [leaveActionId, setLeaveActionId] = useState('');
   const [messageRequestId, setMessageRequestId] = useState('');
   const [messageText, setMessageText] = useState('');
@@ -170,10 +171,12 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
 
   const loadLeaveRequests = async () => {
     setLeaveLoading(true);
+    setLeaveError(false);
     try {
       const { data } = await facultyApi.get('/faculty/leave-requests', facultyApiConfig());
       setLeaveRequests(data.requests || []);
     } catch {
+      setLeaveError(true);
       showNotice('Leave requests could not be loaded. Please refresh and try again.');
     } finally {
       setLeaveLoading(false);
@@ -228,6 +231,41 @@ export function FacultyDashboard({ name = 'Dr. M. Lakshmi', activeTab = 'overvie
     }
     return list;
   }, [filterMode]);
+
+  if (activeTab === 'overview') {
+    const assignmentCount = ['a1', 'a2', 'a3'].filter(key => CSE_SECTION_3_STUDENTS.some(student => student[key] != null)).length;
+    const pendingLeaves = leaveRequests.filter(request => request.status === 'pending').length;
+    return (
+      <div className="faculty-reference-overview">
+        <section className="stats faculty-reference-stats" aria-label="Faculty summary">
+          {[
+            { label: 'Attendance', value: CSE_SECTION_3_STUDENTS.length, note: 'Students in August register', icon: UserCheck, target: 'Attendance' },
+            { label: 'Assignments', value: assignmentCount, note: 'Assignments with marks', icon: BookMarked, target: 'Assignments' },
+            { label: 'Pending Leave Requests', value: leaveLoading ? '...' : leaveError ? 'Unavailable' : pendingLeaves, note: 'Awaiting your review', icon: MessageSquare, target: 'Leave & Substitution' },
+            { label: 'Class Students', value: CSE_SECTION_3_STUDENTS.length, note: 'CSE Section 3', icon: Users, target: 'Attendance' }
+          ].map(({ label, value, note, icon: Icon, target }, index) => (
+            <button type="button" className="stat-card faculty-reference-stat" key={label} onClick={() => onNavigate(target)}>
+              <span className={'icon ' + ['blue', 'green', 'orange', 'purple'][index]}><Icon aria-hidden="true" /></span>
+              <span className="faculty-reference-stat-copy"><span className="faculty-reference-label">{label}</span><strong>{value}</strong><small>{note}</small></span>
+            </button>
+          ))}
+        </section>
+        <section className="panel dashboard-home-actions">
+          <div className="panel-head"><div><h2>Today</h2><p className="muted">Choose a teaching task to continue. All other tools are in the menu.</p></div></div>
+          <div className="compact-action-list">
+            {[
+              ['My Timetable', 'View your teaching schedule, class periods, and rooms.'],
+              ['Attendance', 'Open your class register and review student attendance.'],
+              ['Assignments', 'Review assignment marks and student records.'],
+              ['Leave & Substitution', 'Review student leave requests and respond to applications.']
+            ].map(([title, description]) => <button type="button" className="compact-action" key={title} onClick={() => onNavigate(title)}><span>{title}</span><small>{description}</small></button>)}
+          </div>
+        </section>
+
+
+      </div>
+    );
+  }
 
   return (
     <div className="faculty-dashboard-root" style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>

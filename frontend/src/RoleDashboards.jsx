@@ -1039,7 +1039,7 @@ function DashboardHome({ role, name, student, items, statValues, notifications, 
   );
 }
 
-function StudentCoordinatorHome({ items, data, onNavigate }) {
+function StudentCoordinatorHome({ data, onNavigate }) {
   const today = new Date().getDay();
   const upcomingClasses = (data.timetable || [])
     .filter(item => item.day_of_week === today)
@@ -1051,35 +1051,13 @@ function StudentCoordinatorHome({ items, data, onNavigate }) {
 
   return (
     <>
-      <section className="panel dashboard-home-actions" style={{ marginTop: '18px' }}>
-        <div className="panel-head">
-          <div>
-            <h2>Coordinator Focus</h2>
-            <p className="muted">Start attendance quickly, track today&apos;s classes, and share class updates from one place.</p>
-          </div>
-        </div>
-        <div className="compact-action-list">
-          {items.slice(0, 4).map(item => (
-            <button className="compact-action" key={item} onClick={() => onNavigate(item)}>
-              <span>{item}</span>
-              <small>
-                {item === 'Attendance Session'
-                  ? 'Open or stop live attendance sessions for your class.'
-                  : item === 'Class Timetable'
-                  ? 'Check today&apos;s periods, rooms, and faculty slots.'
-                  : item === 'Class Announcements'
-                  ? 'Post important updates and reminder notices.'
-                  : 'View the assigned subjects and class ownership details.'}
-              </small>
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* The sidebar provides navigation; keep the overview focused on today's work. */}
 
-      <section className="grid" style={{ marginTop: '18px' }}>
+
+      <section className="grid coordinator-grid" style={{ marginTop: '18px' }}>
         <article className="panel">
           <div className="panel-head">
-            <h2>Session Snapshot</h2>
+            <h2>Attendance</h2>
             <span>{sessionCount ? `${sessionCount} live` : 'No live session'}</span>
           </div>
           <p className="muted" style={{ marginBottom: '12px' }}>
@@ -1087,14 +1065,14 @@ function StudentCoordinatorHome({ items, data, onNavigate }) {
               ? 'An attendance session is already running. You can stop it or share the code from the session workspace.'
               : 'No active attendance session right now. Start one before the next class begins.'}
           </p>
-          <button onClick={() => onNavigate('Attendance Session')}>
+          <button className="coordinator-start" onClick={() => onNavigate('Attendance Session')}>
             {sessionCount ? 'Manage Live Session' : 'Start Attendance'}
           </button>
         </article>
 
         <article className="panel">
           <div className="panel-head">
-            <h2>Next Classes</h2>
+            <h2>Today’s classes</h2>
             <button onClick={() => onNavigate('Class Timetable')}>Open timetable</button>
           </div>
           {upcomingClasses.length ? (
@@ -1116,7 +1094,7 @@ function StudentCoordinatorHome({ items, data, onNavigate }) {
 
         <article className="panel span2">
           <div className="panel-head">
-            <h2>Announcement Priority</h2>
+            <h2>Announcements</h2>
             <button onClick={() => onNavigate('Class Announcements')}>Open announcements</button>
           </div>
           {spotlightNotice ? (
@@ -1229,7 +1207,7 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
     ? [values.subjects || 5, data.timetable.filter(t => t.day_of_week === new Date().getDay()).length || 3, values.sessions || 1, values.notices || 4]
     : role === 'student_coordinator'
     ? [
-        values.subjects || data.subjects.length || 5,
+        values.subjects ?? data.subjects.length,
         data.timetable.filter(t => t.day_of_week === new Date().getDay()).length || 0,
         values.sessions ? 'Live' : 'Ready',
         values.notices || data.notices.length || 0
@@ -1294,7 +1272,7 @@ export function RoleDashboard({ role, name, active, onNavigate, onLogout, onRole
       </aside>
 
       {/* Main Content */}
-      <main className="content">
+      <main className={`content${role === 'student_coordinator' && isHome ? ' coordinator-content' : ''}`}>
         <header>
           <button className="mobile-menu" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Open navigation">
             {mobileOpen ? <X /> : <Menu />}

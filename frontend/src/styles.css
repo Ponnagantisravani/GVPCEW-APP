@@ -316,6 +316,65 @@ h1, h2, h3, p, span, small, strong, td, th, button, label {
   gap: 16px;
   margin-bottom: 18px;
 }
+.content.coordinator-content { background: #f5f8f6; }
+.coordinator-content .eyebrow { color: #49715c; }
+.coordinator-content .stats { gap: 0; background: #fff; border: 1px solid #e0e8e2; border-radius: 14px; padding: 20px 0; margin-bottom: 24px; }
+.coordinator-content .stat-card { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 0 22px; gap: 12px; }
+.coordinator-content .stat-card + .stat-card { border-left: 1px solid #e5ece7; }
+.coordinator-content .stat-card::before { display: none; }
+.coordinator-content .stat-card .icon { background: #eef4f0; color: #46745a; }
+.coordinator-content .stat-card strong { display: block; margin-top: 5px; font-size: 24px; }
+.coordinator-content .stat-card small { display: none; }
+.coordinator-content .coordinator-grid { gap: 22px; }
+.coordinator-content .panel { padding: 26px; border: 1px solid #e0e8e2; border-radius: 14px; background: #fff; box-shadow: none; min-width: 0; }
+.coordinator-content .coordinator-grid > .panel:first-child { background: #eaf3ed; border-color: #d8e6dc; }
+.coordinator-content .panel-head { margin-bottom: 20px; }
+.coordinator-content .panel-head h2 { color: #253e2f; font-size: 16px; }
+.coordinator-content .panel-head span { color: #65766b; background: #fff; border-radius: 20px; font-size: 11px; }
+.coordinator-content .muted { color: #697a6f; font-size: 14px; line-height: 1.7; }
+.coordinator-content .panel-head button { background: transparent; color: #326448; box-shadow: none; padding: 6px 0; }
+.coordinator-content .panel-head button:hover { text-decoration: underline; }
+.coordinator-content .coordinator-start { margin-top: 10px; padding: 12px 20px; background: #28563e; color: #fff; border: 0; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.coordinator-content .coordinator-start:hover { background: #1b402c; }
+.coordinator-content button:focus-visible { outline: 3px solid #45845d; outline-offset: 4px; }
+.coordinator-content .alert-row { background: #f7faf8; border-color: #e3ebe6; box-shadow: none; }
+@media (max-width: 1100px) { .coordinator-content .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 24px; } .coordinator-content .stat-card:nth-child(3) { border-left: 0; } }
+@media (max-width: 700px) { .coordinator-content .coordinator-grid { grid-template-columns: 1fr; gap: 16px; } .coordinator-content .coordinator-grid > .span2 { grid-column: auto; } .coordinator-content .panel { padding: 20px; } .coordinator-content .stat-card { padding: 0 14px; } .coordinator-content .stat-card .icon { display: none; } }
+.faculty-reference-overview { width: 100%; }
+.faculty-reference-overview .faculty-reference-stat { text-align: left; font-family: inherit; cursor: pointer; }
+.faculty-reference-stat-copy { display: block; min-width: 0; }
+.faculty-reference-label { display: block; font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 5px; }
+.faculty-reference-stat-copy strong { display: block; }
+.faculty-reference-stat-copy small { display: block; color: #7183a3; margin-top: 3px; font-size: 11px; line-height: 1.4; }
+.faculty-reference-overview .faculty-reference-stat:hover { border-color: #a5b9d5; }
+.faculty-reference-overview button:focus-visible { outline: 3px solid #1769e0; outline-offset: 3px; }
+.faculty-overview { display: grid; gap: 24px; max-width: 1200px; margin: 0 auto; }
+.faculty-overview-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.faculty-overview h2 { font-size: 19px; color: #243c30; margin: 0 0 6px; }
+.faculty-overview p { font-size: 13px; color: #697a70; line-height: 1.6; margin: 0; }
+.faculty-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.faculty-overview button { font-family: inherit; cursor: pointer; }
+.faculty-overview button:focus-visible { outline: 3px solid #3c825a; outline-offset: 4px; }
+.faculty-overview .faculty-kpi { display: flex; flex-direction: column; text-align: left; padding: 26px; border: 1px solid #dfe8e2; background: #fff; border-radius: 16px; color: #263d31; box-shadow: 0 3px 12px #203c2c04; transition: border-color .15s, box-shadow .15s; min-width: 0; }
+.faculty-overview .faculty-kpi:hover { border-color: #8cab97; box-shadow: 0 6px 20px #203c2c0c; }
+.faculty-kpi-top { display: flex; align-items: center; gap: 12px; width: 100%; font-size: 15px; font-weight: 650; }
+.faculty-kpi-top > svg { margin-left: auto; width: 18px; color: #8b9c91; }
+.faculty-kpi-icon { display: inline-grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: #edf5ef; color: #397554; flex-shrink: 0; }
+.faculty-kpi-icon svg { width: 21px; height: 21px; }
+.faculty-kpi-icon.assignments { background: #eef2fb; color: #5470a8; }
+.faculty-kpi-value { display: block; font-size: 40px; font-weight: 650; line-height: 1.2; margin: 26px 0 12px; }
+.faculty-kpi-value > span { display: block; font-size: 13px; font-weight: 500; color: #596e60; margin-top: 8px; }
+.faculty-kpi-context { font-size: 12px; color: #738177; line-height: 1.6; }
+.faculty-kpi-footer { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #eaf0ec; padding-top: 17px; margin-top: 24px; width: 100%; font-size: 12px; font-weight: 600; color: #37674a; }
+.faculty-kpi-footer svg { width: 16px; height: 16px; }
+.faculty-leave-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; padding: 22px 24px; background: #fff; border: 1px solid #dfe8e2; border-radius: 14px; }
+.faculty-leave-summary > div { flex: 1; min-width: 180px; }
+.faculty-leave-summary h3 { font-size: 14px; margin: 0 0 5px; color: #263d31; }
+.faculty-overview .faculty-overview-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 9px 12px; border: 1px solid #dfe8e2; border-radius: 8px; background: #fff; color: #38634a; font-size: 12px; font-weight: 600; }
+.faculty-overview-link svg { width: 16px; height: 16px; }
+.faculty-overview .faculty-overview-link:hover { background: #eef5f0; }
+.faculty-overview .faculty-overview-link:disabled { opacity: .5; cursor: wait; }
+@media (max-width: 700px) { .faculty-kpis { grid-template-columns: 1fr; gap: 16px; } .faculty-overview { gap: 18px; } .faculty-overview .faculty-kpi { padding: 22px; } .faculty-leave-summary { padding: 20px; } }
 .stats--compact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
 .stats--compact .stat-card { padding: 18px 14px 14px; }
 .stats--compact .icon { width: 34px; height: 34px; }
